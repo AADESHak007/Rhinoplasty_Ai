@@ -11,6 +11,7 @@ const Navbar = () => {
             <div className='flex space-x-4 justify-center items-center'>
             <a href="/" className='hover:text-blue-500 text-zinc-400'>Home</a>
             <a href="/about" className='hover:text-blue-500 text-zinc-400'>About</a>
+            <a href="/uploadImage" className='hover:text-blue-500 text-zinc-400'>UploadImage</a>
             <a href="/contact" className='hover:text-blue-500 text-zinc-400'>Contact</a>
             <button onClick={()=> signOut({ callbackUrl: '/api/auth/signin' })} className='bg-red-500 text-zinc-200 px-3 py-1 rounded hover:bg-red-600'>
                 Logout

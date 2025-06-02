@@ -21,6 +21,7 @@ model User {
   name      String
   password  String
   images    Images[]
+  aiImages  AiGeneratedImage[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -32,4 +33,13 @@ model Images {
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+model AiGeneratedImage {
+  id          String   @id @default(cuid())
+  imageUrl    String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

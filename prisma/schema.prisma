@@ -31,14 +31,18 @@ model Images {
   url       String
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+  generatedImages AiGeneratedImage[] @relation("OriginalToGenerated")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model AiGeneratedImage {
   id          String   @id @default(cuid())
   imageUrl    String
   userId      String
   user        User     @relation(fields: [userId], references: [id])
+  originalImageId String
+  originalImage Images @relation("OriginalToGenerated", fields: [originalImageId], references: [id])
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

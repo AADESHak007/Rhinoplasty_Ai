@@ -41,12 +41,12 @@ async function waitForPrediction(predictionId: string, maxAttempts = 60) {
 async function generateWithSD35Large(
   imageUrl: string,
   prompt: string,
-  negativePrompt: string = "",
-  strength: number = 0.7,
-  guidanceScale: number = 7.5,
-  numInferenceSteps: number = 28,
-  width: number = 1024,
-  height: number = 1024
+  negativePrompt: string,
+  strength: number,
+  guidanceScale: number ,
+  numInferenceSteps: number,
+  width: number ,
+  height: number
 ) {
   console.log("Creating Stable Diffusion 3.5 Large prediction...");
   console.log("Image URL:", imageUrl);
@@ -97,9 +97,9 @@ export async function POST(req: NextRequest) {
     const { 
       imageUrl, 
       prompt,
-      negativePrompt = "",
-      strength = 0.45,
-      guidanceScale = 6.78,
+      negativePrompt = "different person, face swap, altered identity, changed skin color, different lighting, artificial nose, obvious surgery, unnatural appearance, distorted features, blurry, low resolution",
+      strength = 0.44,
+      guidanceScale = 6.8,
       numInferenceSteps = 28,
       width = 1024,
       height = 1024
@@ -122,33 +122,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate parameters
-    if (strength < 0.1 || strength > 1.0) {
-      return NextResponse.json(
-        { msg: "strength must be between 0.1 and 1.0 (0.7 recommended for nose editing)" },
-        { status: 400 }
-      );
-    }
-
-    if (guidanceScale < 1.0 || guidanceScale > 20.0) {
-      return NextResponse.json(
-        { msg: "guidanceScale must be between 1.0 and 20.0" },
-        { status: 400 }
-      );
-    }
-
-    if (numInferenceSteps < 10 || numInferenceSteps > 100) {
-      return NextResponse.json(
-        { msg: "numInferenceSteps must be between 10 and 100" },
-        { status: 400 }
-      );
-    }
-
-    if (width < 512 || width > 2048 || height < 512 || height > 2048) {
-      return NextResponse.json(
-        { msg: "width and height must be between 512 and 2048 pixels" },
-        { status: 400 }
-      );
-    }
 
     console.log("Using Stable Diffusion 3.5 Large for image editing...");
 

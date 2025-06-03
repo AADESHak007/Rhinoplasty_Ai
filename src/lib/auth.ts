@@ -1,12 +1,18 @@
-
 import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 const prisma = new PrismaClient() ;
 
 export const authOptions = {
     providers :[
+        // Google OAuth Provider
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+        }),
+        // Existing Credentials Provider
         CredentialsProvider({
             name:"Credentials",
             credentials:{
@@ -56,7 +62,10 @@ export const authOptions = {
             }
         }),
     ],
-    secret:process.env.JWT_SECRET ||"default_secret",
+    secret:process.env.NEXTAUTH_SECRET ||"default_secret",
+    pages: {
+      signIn: '/auth/signin',
+    },
     
     //to manage sessions ..
     callbacks:{
@@ -65,35 +74,29 @@ export const authOptions = {
             return session ;
         },
         
-        
-        //Uncomment this to enable ----- OAuth sign-in --- 
-        
-        
-        
-        
-        
-        
-        // async signIn({ user, account, profile }: any) {
-
-        //     const existingUser = await prisma.user.findUnique({
-        //         where:{
-        //             email: user.email
-        //         }
-        //     }) ;
-        //     if (existingUser) {
-        //         return true; // User exists, allow sign-in
-        //     } else {
-        //         // If user does not exist, create a new user
-        //         await prisma.user.create({
-        //             data: {
-        //                 email: user.email,
-        //                 name: user.name || "New User",
-        //                 password: "", // Password is not required for OAuth users
-        //             }
-        //         });
-        //         return true; // Allow sign-in after creating the user
-        //     }
-
-        // }
+        // OAuth sign-in callback for Google and other providers
+        async signIn({ user, account, profile }: any) {
+            if (account?.provider === 'google') {
+                const existingUser = await prisma.user.findUnique({
+                    where:{
+                        email: user.email
+                    }
+                })
+                if (existingUser) {
+                    return true; // User exists, allow sign-in
+                } else {
+                    // If user does not exist, create a new user
+                    await prisma.user.create({
+                        data: {
+                            email: user.email,
+                            name: user.name || "New User",
+                            password: "", // Password is not required for OAuth users
+                        }
+                    });
+                    return true; // Allow sign-in after creating the user
+                }
+            }
+            return true; // Allow sign-in for other providers/methods
+        }
     }
 }

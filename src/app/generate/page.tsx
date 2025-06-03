@@ -1,12 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import React, { useState } from 'react';
+import Image from 'next/image';
+
+// Predefined nose type prompts
+const RHINOPLASTY_OPTIONS = {
+  roman: {
+    label: "Roman Nose",
+    prompt: "Transform only the nose to a Roman nose style with a prominent straight bridge and slight downward curve at the tip, keep everything else exactly the same: same eyes, same mouth, same face shape, same skin, same hair, same lighting, same background - change only the nose to Roman type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  nubian: {
+    label: "Nubian Nose",
+    prompt: "Modify only the nose to a Nubian nose shape with a wide base and flared nostrils, preserve everything else identical: same eyes, same eyebrows, same lips, same facial structure, same skin tone, same hair, same lighting - alter only the nose to Nubian style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  greek: {
+    label: "Greek/Straight Nose",
+    prompt: "Change only the nose to a Greek nose with a perfectly straight bridge from forehead to tip, maintain all other features unchanged: same eye shape, same mouth, same cheeks, same jawline, same skin, same hair, same background - modify only the nose to Greek/straight type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  button: {
+    label: "Button/Celestial Nose",
+    prompt: "Transform only the nose to a button nose shape - small, upturned with a slight curve, keep everything else identical: same face structure, same eyes, same lips, same skin color, same hair style, same lighting - change only the nose to button/celestial style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  aquiline: {
+    label: "Aquiline/Hooked Nose",
+    prompt: "Modify only the nose to an aquiline nose with a prominent curved bridge forming a hook shape, preserve all other facial features: same eyes, same mouth, same face shape, same skin tone, same hair, same expression - alter only the nose to aquiline type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  snub: {
+    label: "Snub Nose",
+    prompt: "Change only the nose to a snub nose - short, turned up at the tip with visible nostrils, maintain everything else unchanged: same eye color and shape, same lips, same facial proportions, same skin, same hair, same lighting - modify only the nose to snub style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  bulbous: {
+    label: "Bulbous Nose",
+    prompt: "Transform only the nose to have a bulbous tip - rounded and enlarged at the end, keep all other features identical: same eyes, same eyebrows, same mouth shape, same cheeks, same chin, same skin, same hair - change only the nose tip to bulbous style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  hawk: {
+    label: "Hawk Nose",
+    prompt: "Modify only the nose to a hawk nose shape with a sharp, prominent bridge and narrow tip, preserve everything else exactly: same facial structure, same eyes, same lips, same skin tone, same hair color, same background - alter only the nose to hawk type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  custom: {
+    label: "Custom",
+    prompt: ""
+  }
+};
 
 export default function GeneratePage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
-  const [prompt, setPrompt] = useState("");
+  const [selectedOption, setSelectedOption] = useState<string>("roman");
+  const [customPrompt, setCustomPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState("");
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
@@ -23,14 +64,22 @@ export default function GeneratePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedImage || !prompt) return;
+    if (!selectedImage) return;
+
+    // Use custom prompt if selected, otherwise use preset prompt
+    const finalPrompt = selectedOption === "custom" ? customPrompt : RHINOPLASTY_OPTIONS[selectedOption as keyof typeof RHINOPLASTY_OPTIONS].prompt;
+    
+    if (!finalPrompt) {
+      setError("Please provide a prompt");
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
-    setGeneratedImageUrl(""); // Reset generated image URL
+    setGeneratedImageUrl("");
 
     try {
-      // Step 1: Upload original image
+      // Step 1: Upload original image to Cloudinary
       const formData = new FormData();
       formData.append("file", selectedImage);
       
@@ -43,20 +92,18 @@ export default function GeneratePage() {
         throw new Error("Failed to upload image");
       }
       
-      const { url: uploadedImageUrl, id: originalImageId } = await uploadResponse.json();
+      const { url: uploadedImageUrl } = await uploadResponse.json();
       setOriginalImageUrl(uploadedImageUrl);
-      console.log("Original image uploaded:", { url: uploadedImageUrl, id: originalImageId });
 
-      // Step 2: Generate AI image
-      const generateResponse = await fetch("/api/generateImage/v1/stable3diffusion", {
+      // Step 2: Generate AI image using Gemini
+      const generateResponse = await fetch("http://localhost:3000/api/generateImage/v1/gemini", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           imageUrl: uploadedImageUrl,
-          prompt,
-          originalImageId,
+          instruction: finalPrompt,
         }),
       });
 
@@ -64,31 +111,14 @@ export default function GeneratePage() {
         throw new Error("Failed to generate image");
       }
       
-      const { output: generatedImageUrl } = await generateResponse.json();
-      console.log("AI generated image URL:", generatedImageUrl);
+      const response = await generateResponse.json();
+      console.log("Gemini API Response:", response);
 
-      // Step 3: Store AI generated image in database
-      const storeResponse = await fetch("/api/store-generated-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageUrl: generatedImageUrl,
-          originalImageId,
-          prompt,
-        }),
-      });
-
-      if (!storeResponse.ok) {
-        throw new Error("Failed to store generated image");
+      if (response.status === "success" && response.editedImage) {
+        setGeneratedImageUrl(response.editedImage);
+      } else {
+        throw new Error(response.msg || "Failed to generate image");
       }
-
-      const { url: storedImageUrl } = await storeResponse.json();
-      console.log("Stored AI generated image:", storedImageUrl);
-      
-      // Set the generated image URL after successful storage
-      setGeneratedImageUrl(storedImageUrl);
 
     } catch (error) {
       console.error("Error:", error);
@@ -99,106 +129,137 @@ export default function GeneratePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-8">AI Image Generator</h1>
+    <div className="container mx-auto px-4 py-8 min-h-screen text-white">
+      <h1 className="text-3xl font-bold text-center mb-8 text-purple-400">AI Rhinoplasty Simulator</h1>
       
-      <div className="max-w-2xl mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Image
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      <div className="max-w-2xl mx-auto bg-gray-900 rounded-lg shadow-lg p-6 border border-purple-800 relative overflow-hidden">
+        {/* Background glowing effect */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center top, rgba(128, 0, 128, 0.1), transparent 50%)' }}></div>
+
+        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Upload Your Photo
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-500 file:text-white hover:file:bg-purple-600"
+              />
+            </div>
+
+            {previewUrl && (
+              <div className="relative w-full h-64 rounded-lg overflow-hidden border border-gray-700">
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  fill
+                  className="object-contain"
+                  unoptimized
                 />
               </div>
+            )}
 
-              {previewUrl && (
-                <div className="relative w-full h-64 rounded-lg overflow-hidden border border-gray-200">
-                  <Image
-                    src={previewUrl}
-                    alt="Preview"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              )}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Select Nose Type
+              </label>
+              <select
+                value={selectedOption}
+                onChange={(e) => setSelectedOption(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+              >
+                {Object.entries(RHINOPLASTY_OPTIONS).map(([key, value]) => (
+                  <option key={key} value={key}>
+                    {value.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
+            {selectedOption === "custom" && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Prompt
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Custom Instructions
                 </label>
                 <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Describe how you want to modify the image..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder="Describe how you want your nose to look..."
+                  className="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  rows={4}
                 />
               </div>
+            )}
 
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
-                  {error}
+            {error && (
+              <div className="text-red-500 text-sm mt-2">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={!selectedImage || (selectedOption === "custom" && !customPrompt) || isLoading}
+              className={`w-full py-2 px-4 rounded-md text-white font-medium transition-colors ${
+                !selectedImage || (selectedOption === "custom" && !customPrompt) || isLoading
+                  ? 'bg-gray-600 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'
+              }`}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Generating Simulation...
                 </div>
+              ) : (
+                "Generate Simulation"
               )}
-
-              <button
-                type="submit"
-                disabled={!selectedImage || !prompt || isLoading}
-                className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-                  !selectedImage || !prompt || isLoading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating...
-                  </div>
-                ) : (
-                  "Generate Image"
-                )}
-              </button>
-            </div>
+            </button>
           </div>
         </form>
 
         {(originalImageUrl || generatedImageUrl) && (
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
             {originalImageUrl && (
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Original Image</h3>
-                <div className="relative w-full h-64 rounded-lg overflow-hidden border border-gray-200">
-                  <Image
-                    src={originalImageUrl}
-                    alt="Original"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
+              <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-purple-700">
+                <h3 className="text-lg font-medium text-gray-200 mb-2">Original Photo</h3>
+                <div className="relative w-full h-64 rounded-lg overflow-hidden border border-gray-600">
+                  {originalImageUrl && originalImageUrl !== "" ? (
+                    <Image
+                      src={originalImageUrl}
+                      alt="Original"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      No image uploaded yet
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
             {generatedImageUrl && (
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Generated Image</h3>
-                <div className="relative w-full h-64 rounded-lg overflow-hidden border border-gray-200">
-                  <Image
-                    src={generatedImageUrl}
-                    alt="Generated"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
+              <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-purple-700">
+                <h3 className="text-lg font-medium text-gray-200 mb-2">Simulated Outcome</h3>
+                <div className="relative w-full h-64 rounded-lg overflow-hidden border border-gray-600">
+                  {generatedImageUrl && generatedImageUrl !== "" ? (
+                    <Image
+                      src={generatedImageUrl}
+                      alt="Generated"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      No image generated yet
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
       prompt,
       negativePrompt = "different person, face swap, altered identity, changed skin color, different lighting, artificial nose, obvious surgery, unnatural appearance, distorted features, blurry, low resolution",
       strength = 0.44,
-      guidanceScale = 6.8,
+      guidanceScale = 7.8,
       numInferenceSteps = 28,
       width = 1024,
       height = 1024

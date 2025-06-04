@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 interface imageDataProps {
     imageData: {
         id: string;
@@ -13,10 +14,13 @@ const DisplayImage = ({imageData} : imageDataProps) => {
         {imageData.map((image)=>{
             return (
                 <div key={image.id} className="mb-4">
-                    <img
+                    <Image
                         src={image.url}
                         alt={`Uploaded on ${new Date(image.createdAt).toLocaleDateString()}`}
-                        className="w-60 rounded shadow-lg"
+                        width={240}
+                        height={240}
+                        className="rounded shadow-lg"
+                        unoptimized
                     />
                     <p className="text-sm text-gray-500 mt-1">
                         Uploaded on: {new Date(image.createdAt).toLocaleDateString()}

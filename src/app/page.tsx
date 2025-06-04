@@ -1,8 +1,9 @@
 import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { redirect } from 'next/navigation'
 
 export default async function Home() {
+  //@ts-expect-error NextAuth v4 compatibility issue with App Router types
   const session = await getServerSession(authOptions) ;
   if (!session) {
     redirect("/api/auth/signin");

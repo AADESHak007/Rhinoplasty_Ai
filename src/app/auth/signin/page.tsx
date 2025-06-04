@@ -47,7 +47,7 @@ export default function SignInPage() {
       } else if (result?.ok) {
         router.push('/');
       }
-    } catch (error) {
+    } catch {
       setError('Google sign-in failed. Please try again.');
     } finally {
       setIsLoading(false);

@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 
 export default function UploadForm() {
   const [imageUrl, setImageUrl] = useState('');
@@ -33,7 +34,7 @@ export default function UploadForm() {
       {imageUrl && (
         <div className="mt-4">
           <p className="text-green-500">Uploaded Successfully:</p>
-          <img src={imageUrl} alt="Uploaded" className="w-60 rounded mt-2" />
+          <Image src={imageUrl} alt="Uploaded" width={240} height={240} className="rounded mt-2" unoptimized />
         </div>
       )}
     </form>

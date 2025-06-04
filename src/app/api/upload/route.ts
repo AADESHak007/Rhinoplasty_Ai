@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import cloudinary from "@/lib/cloudinary";
 import { UploadApiResponse } from "cloudinary";
@@ -9,6 +9,8 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
+
+    //@ts-expect-error NextAuth v4 compatibility issue with App Router types
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

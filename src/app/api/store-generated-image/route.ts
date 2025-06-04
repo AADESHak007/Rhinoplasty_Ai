@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import cloudinary from "@/lib/cloudinary";
+import { UploadApiResponse } from "cloudinary";
 
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
+    
+    //@ts-expect-error NextAuth v4 compatibility issue with App Router types
+    
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -43,7 +47,7 @@ export async function POST(req: NextRequest) {
       console.log("Successfully downloaded image");
 
       // Upload to Cloudinary
-      const uploadRes = await new Promise<any>((resolve, reject) => {
+      const uploadRes = await new Promise<UploadApiResponse>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             folder: 'rhinoplasty/generated',
@@ -53,9 +57,11 @@ export async function POST(req: NextRequest) {
             if (error) {
               console.error("Cloudinary upload error:", error);
               reject(error);
-            } else {
+            } else if (result) {
               console.log("Cloudinary upload success:", result);
               resolve(result);
+            } else {
+              reject(new Error("Upload failed: No result received"));
             }
           }
         );

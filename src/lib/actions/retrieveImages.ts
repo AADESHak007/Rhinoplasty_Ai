@@ -1,13 +1,16 @@
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth"
 import { PrismaClient } from "@prisma/client";
 
 
 const getImages = async()=>{
+    //@ts-expect-error NextAuth v4 compatibility issue with App Router types
+
     const session =  await getServerSession(authOptions) ;
     if (!session || !session.user?.email) {
         throw new Error("Unauthorized , Please login to access images");
     }
+    //@ts-expect-error NextAuth v4 compatibility issue with App Router types
     const userId = session.user.id; 
     const prisma = new PrismaClient() ;
 

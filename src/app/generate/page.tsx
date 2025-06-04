@@ -37,11 +37,32 @@ const RHINOPLASTY_OPTIONS = {
     label: "Hawk Nose",
     prompt: "Modify only the nose to a hawk nose shape with a sharp, prominent bridge and narrow tip, preserve everything else exactly: same facial structure, same eyes, same lips, same skin tone, same hair color, same background - alter only the nose to hawk type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
   },
+  upturned: {
+    label: "Upturned Nose",
+    prompt: "Change only the nose to an upturned nose with an upward-pointing tip and visible nostrils, retain all other facial details the same: same eyes, same mouth, same skin tone, same hair style, same lighting, same background - modify only the nose to upturned type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  flat: {
+    label: "Flat Nose",
+    prompt: "Transform only the nose to a flat nose with a low bridge and minimal projection, especially at the nasal tip, keep all other features identical: same eyes, same lips, same facial symmetry, same hair, same skin tone, same lighting - change only the nose to flat type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  hooked: {
+    label: "Hooked Nose",
+    prompt: "Modify only the nose to a hooked nose with a pronounced downward curve in the bridge, maintain everything else unchanged: same face structure, same eye shape, same lips, same cheeks, same lighting - alter only the nose to hooked type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  wide: {
+    label: "Wide Nose",
+    prompt: "Change only the nose to a wide nose shape with a broad bridge and flared nostrils, preserve all other facial characteristics: same eyes, same lips, same hair, same skin tone, same lighting, same background - modify only the nose to wide type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
+  narrow: {
+    label: "Narrow Nose",
+    prompt: "Transform only the nose to a narrow nose with a slim bridge and petite tip, keep all other details untouched: same eye shape and color, same lips, same facial shape, same skin, same hair, same lighting - change only the nose to narrow type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+  },
   custom: {
     label: "Custom",
     prompt: ""
   }
 };
+
 
 export default function GeneratePage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -130,13 +151,32 @@ export default function GeneratePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen text-white">
+      <style jsx>{`
+        .dropdown-container {
+          margin-bottom: 2rem;
+          z-index: 10;
+        }
+        .dropdown-container select {
+          position: relative !important;
+          z-index: 10;
+        }
+        /* Ensure dropdown opens downward */
+        .dropdown-container select:focus {
+          position: relative !important;
+          z-index: 999;
+        }
+        /* Add space below for dropdown */
+        .form-container {
+          padding-bottom: 20rem;
+        }
+      `}</style>
       <h1 className="text-3xl font-bold text-center mb-8 text-purple-400">AI Rhinoplasty Simulator</h1>
       
       <div className="max-w-2xl mx-auto bg-gray-900 rounded-lg shadow-lg p-6 border border-purple-800 relative overflow-hidden">
         {/* Background glowing effect */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center top, rgba(128, 0, 128, 0.1), transparent 50%)' }}></div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+        <form onSubmit={handleSubmit} className="space-y-6 relative z-10 form-container">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -166,17 +206,26 @@ export default function GeneratePage() {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Select Nose Type
               </label>
-              <select
-                value={selectedOption}
-                onChange={(e) => setSelectedOption(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
-              >
-                {Object.entries(RHINOPLASTY_OPTIONS).map(([key, value]) => (
-                  <option key={key} value={key}>
-                    {value.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative dropdown-container">
+                <select
+                  value={selectedOption}
+                  onChange={(e) => setSelectedOption(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 appearance-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                    backgroundPosition: 'right 0.5rem center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '1.5em 1.5em',
+                    paddingRight: '2.5rem'
+                  }}
+                >
+                  {Object.entries(RHINOPLASTY_OPTIONS).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {selectedOption === "custom" && (

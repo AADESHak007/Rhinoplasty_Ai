@@ -7,7 +7,16 @@ let geminiClient: Client | null = null;
 async function getGeminiClient() {
   if (!geminiClient) {
     try {
-      geminiClient = await Client.connect("taesiri/Gemini-Text-based-Image-Editor");
+      const token = process.env.HUGGINGFACE_TOKEN;
+      if (!token) {
+        throw new Error("HUGGINGFACE_TOKEN environment variable is required");
+      }
+
+      const formattedToken = token.startsWith('hf_') ? token : `hf_${token}`;
+      
+      geminiClient = await Client.connect("Shanks07/Gemini-Text-based-Image-Editor", {
+        hf_token: formattedToken as `hf_${string}`
+      });
     } catch (error) {
       console.error("Failed to connect to Gemini:", error);
       throw new Error("Failed to initialize Gemini client");
@@ -68,13 +77,48 @@ export async function POST(req: NextRequest) {
     console.log("Instruction:", instruction);
 
     const result = await processImageWithGemini(imageUrl, instruction);
+    console.log("Raw result:", result);
 
-    // The result contains [editedImage, geminiResponse, status]
+    // Handle the response from your private space
+    let editedImageUrl, geminiResponse, processingStatus;
+    
+    if (Array.isArray(result.data)) {
+      // Array format: [editedImage, geminiResponse, status]
+      const editedImageData = result.data[0];
+      
+      // Check if it's a FileData object with URL
+      if (editedImageData && typeof editedImageData === 'object' && editedImageData.url) {
+        editedImageUrl = editedImageData.url;
+      } else {
+        editedImageUrl = editedImageData;
+      }
+      
+      geminiResponse = result.data[1];
+      processingStatus = result.data[2];
+      
+      // Check for API errors in processingStatus
+      if (processingStatus && typeof processingStatus === 'string' && processingStatus.includes('Error:')) {
+        throw new Error(`Gemini API Error: ${processingStatus}`);
+      }
+    } else {
+      // Direct object - this is your case
+      editedImageUrl = result.data;
+      geminiResponse = "";
+      processingStatus = "Success";
+    }
+
+    // Validate we got a proper URL
+    if (!editedImageUrl) {
+      throw new Error("No edited image URL received from Gemini space");
+    }
+
+    console.log("Extracted image URL:", editedImageUrl);
+
     return NextResponse.json({
       status: "success",
-      editedImage: (result.data as string[])[0],
-      geminiResponse: (result.data as string[])[1],
-      processingStatus: (result.data as string[])[2],
+      editedImage: editedImageUrl, // Return the URL string, not the object
+      geminiResponse: geminiResponse,
+      processingStatus: processingStatus,
       message: "Image processed successfully with Gemini"
     });
 
@@ -87,6 +131,10 @@ export async function POST(req: NextRequest) {
         errorMessage = "Image URL not accessible. Please use a direct image link.";
       } else if (error.message.includes("Failed to fetch image")) {
         errorMessage = "Could not fetch the image from the provided URL.";
+      } else if (error.message.includes("Gemini API Error")) {
+        errorMessage = "Gemini AI service is currently experiencing issues. Please try again in a few minutes.";
+      } else if (error.message.includes("500 INTERNAL")) {
+        errorMessage = "Google's AI service is temporarily unavailable. Please retry in a few moments.";
       }
     }
 

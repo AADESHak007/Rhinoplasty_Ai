@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import { JWT } from "next-auth/jwt";
+import type { Session, User } from "next-auth";
 
 const prisma = new PrismaClient() ;
 
@@ -22,7 +24,7 @@ export const authOptions = {
             },
             async authorize(
                 credentials: Record<"name" | "email" | "password", string> | undefined
-            ): Promise<{ id: any; email: any; name: any } | null> {
+            ): Promise<{ id: string; email: string; name: string } | null> {
                 if (!credentials) return null;
                 const { email, password, name } = credentials;
                 if (!email || !password || !name) {
@@ -69,14 +71,15 @@ export const authOptions = {
     
     //to manage sessions ..
     callbacks:{
-        async session({ session, token }: any) {
-            session.user.id = token.sub;
+             
+        async session({ session, token }: { session: Session; token: JWT  }) {
+            session.user.id = token.sub as string;
             return session ;
         },
         
         // OAuth sign-in callback for Google and other providers
-        async signIn({ user, account, profile }: any) {
-            if (account?.provider === 'google') {
+        async signIn({ user, account }: { user: User; account: { provider?: string } | null }) {
+            if (account?.provider === 'google' && user.email) {
                 const existingUser = await prisma.user.findUnique({
                     where:{
                         email: user.email

@@ -12,7 +12,7 @@ const Navbar = () => {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/generate', label: 'Generate' },
-    { href: '/uploadImage', label: 'Upload Image' },
+    // { href: '/uploadImage', label: 'Upload Image' },
   ]
 
   return (

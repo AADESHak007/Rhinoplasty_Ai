@@ -71,9 +71,27 @@ export const authOptions = {
     
     //to manage sessions ..
     callbacks:{
+        async jwt({ token, user, account }: { token: JWT; user?: User; account?: { provider?: string } | null }) {
+            // If this is the first time the JWT is created (user is present)
+            if (user) {
+                token.userId = user.id;
+            }
+            // For Google OAuth, find the user ID from the database
+            if (account?.provider === 'google' && user?.email) {
+                const dbUser = await prisma.user.findUnique({
+                    where: { email: user.email }
+                });
+                if (dbUser) {
+                    token.userId = dbUser.id;
+                }
+            }
+            return token;
+        },
              
         async session({ session, token }: { session: Session; token: JWT  }) {
-            session.user.id = token.sub as string;
+            if (token.userId) {
+                session.user.id = token.userId as string;
+            }
             return session ;
         },
         

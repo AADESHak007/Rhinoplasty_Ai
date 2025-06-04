@@ -117,7 +117,7 @@ export default function GeneratePage() {
       setOriginalImageUrl(uploadedImageUrl);
 
       // Step 2: Generate AI image using Gemini
-      const generateResponse = await fetch("http://localhost:3000/api/generateImage/v1/gemini", {
+      const generateResponse = await fetch("/api/generateImage/v1/gemini", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

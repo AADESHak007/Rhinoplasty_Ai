@@ -14,35 +14,34 @@ export async function POST(req: Request) {
     }
 
     // Define meta-prompt for optimization
-    const metaPrompt = `You are an expert AI prompt engineer specializing in medical aesthetics and rhinoplasty visualization. Your task is to transform user input into highly effective, detailed prompts for AI image editing that modifies ONLY the nose in an existing facial photograph.
+    const metaPrompt = `You are an expert AI prompt engineer specializing in medical aesthetics and rhinoplasty visualization. Your task is to generate precise, clinically accurate prompts that guide an image-editing AI to simulate realistic nose transformations on an EXISTING facial photograph.
 
-TASK CONTEXT:
-- The user has uploaded an existing facial photo that needs nose modification
-- This is for rhinoplasty simulation/preview on their actual image
-- The AI will EDIT the existing image, not generate a new one
-- Goal is realistic surgical preview while preserving the person's identity
+USER CONTEXT:
+- The user provides a short input describing the desired nose shape and may specify either "front view" or "side view".
+- The uploaded image is a real person’s face, and the prompt is intended for surgical simulation purposes.
+- You must preserve the user’s original instructions and reflect them in the final prompt while transforming ONLY the nose.
 
-OPTIMIZATION OBJECTIVES:
-1. **Surgical Precision**: Add specific anatomical terminology (nasal bridge, dorsum, alar wings, columella, nasal tip, nostril shape, etc.)
-2. **Identity Preservation**: Strong emphasis on maintaining ALL other facial features exactly as they appear in the original photo
-3. **Technical Specificity**: Add details about proportions, angles, and realistic surgical outcomes
-4. **Editing Focus**: Ensure language emphasizes "modify," "transform," "edit," or "change" rather than "create" or "generate"
-5. **Visual Accuracy**: Add descriptors that improve AI editing precision and natural blending
+OBJECTIVES:
+1. **Preserve User Intent**: Analyze the input prompt and explicitly retain the original style/goal, including any keywords about nose type or aesthetic target (e.g., sharp tip, curved bridge, narrower nostrils).
+2. **Recognize View Angle**: If the user mentions “front view” or “side view,” you MUST include that in the final prompt and adapt the language to suit that perspective.
+3. **Surgical Editing Focus**: Use anatomical terms (nasal bridge, alar base, columella, nasal dorsum, nasal tip, nostrils, etc.) and precise surgical language.
+4. **Strict Identity Preservation**: Specify that all facial features (eyes, eyebrows, lips, cheeks, skin tone, chin, jawline, hair, facial expression) MUST remain exactly as they are in the original image.
+5. **Photographic Consistency**: Emphasize that the lighting, shadows, image resolution, and head position must not be altered.
+6. **Use Editing Verbs**: Always use “modify only,” “transform only,” “adjust,” or “change only the nose.” NEVER use “create” or “generate.”
 
-ENHANCEMENT RULES:
-- Transform vague requests into specific nasal anatomy modifications
-- Always include strict preservation requirements for eyes, lips, skin texture, lighting, background, head position, and facial expression
-- Add realistic surgical limitations and natural-looking results
-- Include view-specific editing details (front-facing vs. profile modifications)
-- Use editing-focused language: "modify the existing nose," "transform only the nasal structure," "edit the nose while preserving..."
-- Maintain the user's aesthetic intent while ensuring the edit looks natural on their specific face
-- Include instructions to preserve original image quality, lighting, and photographic characteristics
+STYLE INSTRUCTIONS:
+- The prompt should be a single, well-structured paragraph.
+- Start with the nose transformation, followed by a detailed list of preserved facial and photographic elements.
+- Use capitalized keywords for constraints: CRITICAL, PRESERVE, MAINTAIN.
+- Ensure the tone is direct, clinical, and optimized for AI image editing precision.
+- Avoid artistic or creative phrasing—this is a medically realistic enhancement, not art generation.
 
-CRITICAL: The prompt must emphasize editing the EXISTING image, not creating a new face or person.
+CRITICAL: You must generate an editing prompt for a nose transformation on a real person’s photo. Do NOT describe or imply face generation or replacement. Only the nose should be edited.
 
-FORMAT: Return only the enhanced editing prompt as a single, well-structured paragraph without quotes or additional commentary.
+FORMAT: Return the final editing prompt as a single paragraph, with NO quotes, no comments, and no markdown.
 
-USER'S ORIGINAL PROMPT: "${prompt}"`;
+USER’S ORIGINAL INSTRUCTION: "\${prompt}"`;
+
 
     // Call Gemini API to optimize the prompt
     const result = await model.generateContent(metaPrompt);

@@ -40,32 +40,36 @@ const RHINOPLASTY_FRONT_OPTIONS = {
 };
 const RHINOPLASTY_SIDE_OPTIONS = {
   roman: {
-    label: "Roman Nose",
-    prompt: "Transform only the side profile nose to a Roman nose style with a prominent bridge and slight downward curve at the tip, keep everything else exactly the same: same eyes, same mouth, same face shape, same skin, same hair, same lighting, same background - change only the nose to Roman type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+    label: "Roman Nose (Side)",
+    prompt: "Transform only the nose to a Roman nose style with a prominent, straight bridge from the side profile and a subtle downward slope at the tip, viewed from a side angle. Keep everything else exactly the same: same eyes, same mouth, same face shape, same skin, same hair, same lighting, same background - change only the nose to Roman type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle, especially the natural side profile of the face without the nose appearing to protrude unnaturally."
   },
   nubian: {
-    label: "Nubian Nose",
-    prompt: "Modify only the side profile nose to a Nubian nose shape with elongated bridge and wider base, preserve everything else identical: same eyes, same eyebrows, same lips, same facial structure, same skin tone, same hair, same lighting - alter only the nose to Nubian style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+    label: "Nubian Nose (Side)",
+    prompt: "Modify only the nose to a Nubian nose shape with a distinctly wide base and subtly flared nostrils from the side profile, maintaining a natural curve. Preserve everything else identical: same eyes, same eyebrows, same lips, same facial structure, same skin tone, same hair, same lighting - alter only the nose to Nubian style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle, ensuring the nose does not appear unnaturally protruding from the side."
   },
   greek: {
-    label: "Greek/Straight Nose",
-    prompt: "Change only the side profile nose to a Greek nose with a perfectly straight bridge from forehead to tip, maintain all other features unchanged: same eye shape, same mouth, same cheeks, same jawline, same skin, same hair, same background - modify only the nose to Greek/straight type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+    label: "Greek/Straight Nose (Side)",
+    prompt: "Change only the nose to a Greek nose with a perfectly straight bridge from the forehead to the tip when viewed in side profile, creating a seamless line. Maintain all other features unchanged: same eye shape, same mouth, same cheeks, same jawline, same skin, same hair, same background - modify only the nose to Greek/straight type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle, ensuring the nose maintains a natural and integrated appearance from the side."
   },
   button: {
-    label: "Button/Celestial Nose",
-    prompt: "Transform only the side profile nose to a button nose shape - small, upturned with a slight curve, keep everything else identical: same face structure, same eyes, same lips, same skin color, same hair style, same lighting - change only the nose to button/celestial style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+    label: "Button/Celestial Nose (Side)",
+    prompt: "Transform only the nose to a button nose shape - small, with a gentle upturn at the tip and a subtle curve from the side profile, maintaining a soft, natural appearance. Keep everything else identical: same face structure, same eyes, same lips, same skin color, same hair style, same lighting - change only the nose to button/celestial style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle, ensuring the nose does not appear unnaturally pointed or sharp from the side."
   },
   aquiline: {
-    label: "Aquiline/Hooked Nose",
-    prompt: "Modify only the side profile nose to an aquiline nose with a curved bridge forming a hook shape, preserve all other facial features: same eyes, same mouth, same face shape, same skin tone, same hair, same expression - alter only the nose to aquiline type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+    label: "Aquiline/Hooked Nose (Side)",
+    prompt: "Modify only the nose to an aquiline nose with a prominent, curved bridge that forms a subtle hook shape from the side profile, without appearing overly sharp or protruding. Preserve all other facial features: same eyes, same mouth, same face shape, same skin tone, same hair, same expression - alter only the nose to aquiline type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle, ensuring the nose's curve integrates naturally with the face."
   },
   snub: {
-    label: "Snub Nose",
-    prompt: "Change only the side profile nose to a snub nose - short, turned up at the tip with visible nostrils, maintain everything else unchanged: same eye color and shape, same lips, same facial proportions, same skin, same hair, same lighting - modify only the nose to snub style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+    label: "Snub Nose (Side)",
+    prompt: "Change only the nose to a snub nose - short, with a noticeable but soft upturn at the tip and subtly visible nostrils from the side profile. Maintain everything else unchanged: same eye color and shape, same lips, same facial proportions, same skin, same hair, same lighting - modify only the nose to snub style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle, ensuring the nose maintains a natural contour and doesn't appear overly lifted or unnatural."
   },
   hawk: {
-    label: "Hawk Nose",
-    prompt: "Modify only the side profile nose to a hawk nose shape with a sharp, prominent bridge and narrow tip, preserve everything else exactly: same facial structure, same eyes, same lips, same skin tone, same hair color, same background - alter only the nose to hawk type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle"
+    label: "Hawk Nose (Side)",
+    prompt: "Modify only the nose to a hawk nose shape with a slight sharp and natural curve in the prominent bridge and a narrow and sharp(slight but looks natural) tip from the side profile, maintaining a balanced appearance. Preserve everything else exactly: same facial structure, same eyes, same lips, same skin tone, same hair color, same background - alter only the nose to hawk type. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle, ensuring the nose's projection is natural and not exaggerated."
+  },
+  celestial: {
+    label: "Celestial Nose (Side)",
+    prompt: "Transform only the nose to a celestial nose shape from the side profile - characterized by a slightly upturned tip and a subtle indentation on the bridge, creating a graceful, natural curve. Keep everything else identical: same face structure, same eyes, same lips, same skin color, same hair style, same lighting - change only the nose to celestial style. CRITICAL: Do not change facial expression, eye color, lip shape, or skin texture. PRESERVE: exact same lighting, shadows, and image quality. MAINTAIN: original head position and angle, ensuring the nose blends seamlessly with the facial contour without unnatural protrusion."
   },
   custom: {
     label: "Custom",

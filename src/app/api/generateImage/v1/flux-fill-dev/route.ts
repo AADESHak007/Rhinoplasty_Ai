@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       mask: maskImage,  // Required for FLUX Fill
       prompt: prompt,
       num_inference_steps: options.numInferenceSteps || 28,
-      guidance: options.guidance || 30,
+      guidance: options.guidance || 50,
       num_outputs: options.numOutputs || 1,
       megapixels: options.megapixels || "1",
       output_format: options.outputFormat || "jpg",

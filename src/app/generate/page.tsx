@@ -86,6 +86,7 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
   const [brushSize, setBrushSize] = useState(20);
   const [tool, setTool] = useState('brush'); // 'brush' or 'eraser'
   const [maskDataUrl, setMaskDataUrl] = useState<string | null>(null);
+  const [isSavingMask, setIsSavingMask] = useState(false);
 
   useEffect(() => {
     if (uploadedImageUrl) {
@@ -173,6 +174,7 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
 
     const dataUrl = canvas.toDataURL('image/png');
     setMaskDataUrl(dataUrl);
+    setIsSavingMask(true);
     
     // Upload mask to get URL with retry logic
     const uploadMaskWithRetry = async (maxRetries = 3) => {
@@ -187,16 +189,11 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
           const formData = new FormData();
           formData.append('file', file);
           
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for mask
-          
+          // Remove timeout - let the mask upload take as long as it needs
           const uploadResponse = await fetch('/api/upload', {
             method: 'POST',
             body: formData,
-            signal: controller.signal,
           });
-          
-          clearTimeout(timeoutId);
           
           if (!uploadResponse.ok) {
             const errorData = await uploadResponse.json().catch(() => ({}));
@@ -217,21 +214,14 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
           console.error(`Mask upload attempt ${attempt} failed:`, error);
           
           if (error instanceof Error) {
-            if (error.name === 'AbortError') {
-              if (attempt < maxRetries) {
-                console.log(`Mask upload timed out, retrying in 1 second... (${attempt}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                continue;
-              } else {
-                throw new Error("Mask upload timed out. Please try again.");
-              }
-            } else if (error.message.includes('network')) {
+            // Only retry on network errors
+            if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('NetworkError')) {
               if (attempt < maxRetries) {
                 console.log(`Network error, retrying mask upload in 2 seconds... (${attempt}/${maxRetries})`);
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 continue;
               } else {
-                throw new Error("Network error during mask upload. Please try again.");
+                throw new Error("Network error during mask upload after multiple attempts. Please try again.");
               }
             } else {
               throw error;
@@ -247,6 +237,8 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
       console.error('Final mask upload error:', error);
       alert(error instanceof Error ? error.message : 'Failed to upload mask. Please try again.');
       return dataUrl;
+    } finally {
+      setIsSavingMask(false);
     }
   };
 
@@ -321,9 +313,21 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
 
         <button
           onClick={generateMask}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded font-medium transition-colors"
+          disabled={isSavingMask}
+          className={`px-4 py-2 rounded font-medium transition-colors ${
+            isSavingMask 
+              ? 'bg-gray-600 cursor-not-allowed text-gray-300' 
+              : 'bg-purple-600 hover:bg-purple-700 text-white'
+          }`}
         >
-          Generate Mask
+          {isSavingMask ? (
+            <div className="flex items-center">
+              <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Saving Mask...
+            </div>
+          ) : (
+            "Generate Mask"
+          )}
         </button>
       </div>
 
@@ -368,7 +372,19 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
         </ul>
       </div>
 
-      {maskDataUrl && (
+      {isSavingMask && (
+        <div className="mt-4 p-4 bg-blue-900/20 rounded-lg border border-blue-700">
+          <div className="flex items-center">
+            <div className="w-5 h-5 mr-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <div>
+              <p className="text-blue-300 font-semibold">Saving your mask...</p>
+              <p className="text-sm text-blue-400 mt-1">Please wait while we process your mask.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {maskDataUrl && !isSavingMask && (
         <div className="mt-4 p-4 bg-green-900/20 rounded-lg border border-green-700">
           <p className="text-green-300 font-semibold">✅ Mask generated successfully!</p>
           <p className="text-sm text-green-400 mt-1">You can now generate the simulation.</p>
@@ -434,17 +450,11 @@ export default function GeneratePage() {
           const formData = new FormData();
           formData.append("file", selectedImage);
           
-          const controller = new AbortController();
-          // Increased timeout to 120 seconds (2 minutes) for larger images
-          const timeoutId = setTimeout(() => controller.abort(), 120000);
-          
+          // Remove timeout - let the upload take as long as it needs
           const uploadResponse = await fetch("/api/upload", {
             method: "POST",
             body: formData,
-            signal: controller.signal,
           });
-          
-          clearTimeout(timeoutId);
           
           if (!uploadResponse.ok) {
             const errorData = await uploadResponse.json().catch(() => ({}));
@@ -464,24 +474,17 @@ export default function GeneratePage() {
           console.error(`Upload attempt ${attempt} failed:`, error);
           
           if (error instanceof Error) {
-            if (error.name === 'AbortError') {
-              if (attempt < maxRetries) {
-                console.log(`Upload timed out, retrying in 2 seconds... (${attempt}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                continue;
-              } else {
-                throw new Error("Upload timed out after multiple attempts. Please try with a smaller image or check your connection.");
-              }
-            } else if (error.message.includes('timeout') || error.message.includes('network')) {
+            // Only retry on network errors, not on timeout or other errors
+            if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('NetworkError')) {
               if (attempt < maxRetries) {
                 console.log(`Network error, retrying in 3 seconds... (${attempt}/${maxRetries})`);
                 await new Promise(resolve => setTimeout(resolve, 3000));
                 continue;
               } else {
-                throw new Error("Upload failed due to network issues. Please check your connection and try again.");
+                throw new Error("Upload failed due to network issues after multiple attempts. Please check your connection and try again.");
               }
             } else {
-              // For other errors, don't retry immediately
+              // For other errors, don't retry - just throw
               throw error;
             }
           } else {
@@ -694,14 +697,8 @@ export default function GeneratePage() {
 
             {previewUrl && (
               <div className="space-y-4">
-                <div className="relative w-full h-80 rounded-lg overflow-hidden border border-gray-700">
-                  <Image
-                    src={previewUrl}
-                    alt="Preview"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
+                <div className="text-center text-gray-400 text-sm mb-4">
+                  ✅ Image selected successfully
                 </div>
 
                 <button
@@ -871,12 +868,28 @@ export default function GeneratePage() {
                   "Generate Simulation"
                 )}
               </button>
+
+              {/* Success message after generation */}
+              {generatedImageUrl && !isLoading && (
+                <div className="mt-4 p-4 bg-green-900/20 rounded-lg border border-green-700">
+                  <div className="text-center">
+                    <p className="text-green-300 font-semibold text-lg">🎉 Generation Complete!</p>
+                    <p className="text-green-400 mt-2">
+                      Your rhinoplasty simulation is ready. 
+                      <span className="font-medium"> Scroll down to see your results!</span>
+                    </p>
+                    <div className="mt-2 text-green-300 animate-bounce">
+                      ↓ ↓ ↓
+                    </div>
+                  </div>
+                </div>
+              )}
             </form>
           </div>
         )}
 
         {/* Results */}
-        {(originalImageUrl || generatedImageUrl) && (
+        {maskImageUrl && (isLoading || generatedImageUrl) && (
           <div className="bg-gray-900 rounded-lg shadow-lg p-6 border border-purple-800">
             <h2 className="text-xl font-bold text-center text-purple-400 mb-6">Results</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -895,7 +908,19 @@ export default function GeneratePage() {
                 </div>
               )}
 
-              {generatedImageUrl && generatedImageUrl.trim() !== "" && (
+              {isLoading && (
+                <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-purple-700">
+                  <h3 className="text-lg font-medium text-gray-200 mb-2">Simulated Outcome</h3>
+                  <div className="relative w-full h-80 rounded-lg overflow-hidden border border-gray-600 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-12 h-12 mx-auto mb-4 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-gray-300">Generating your simulation...</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {generatedImageUrl && generatedImageUrl.trim() !== "" && !isLoading && (
                 <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-purple-700">
                   <h3 className="text-lg font-medium text-gray-200 mb-2">Simulated Outcome</h3>
                   <div className="relative w-full h-80 rounded-lg overflow-hidden border border-gray-600">

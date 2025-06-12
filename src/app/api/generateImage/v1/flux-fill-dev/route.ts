@@ -1,3 +1,6 @@
+import { authOptions } from '@/lib/auth';
+import { PrismaClient } from '@prisma/client';
+import { getServerSession } from 'next-auth/next';
 import { NextRequest, NextResponse } from 'next/server';
 import Replicate from 'replicate';
 
@@ -5,6 +8,16 @@ import Replicate from 'replicate';
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
+
+// //@ts-expect-error NextAuth v4 compatibility issue with App Router types
+
+// const session = await getServerSession(authOptions) ;
+
+// //@ts-expect-error NextAuth v4 compatibility issue with App Router types
+// const userId = session?.user?.id;
+
+// const prisma = new PrismaClient() ;
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,6 +65,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
 
     // Prepare input for the FLUX Fill model (following official docs pattern)
     const input: {
@@ -199,6 +213,33 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Final valid URLs:', validUrls);
+    //validUrls is my output for now  .. 
+
+    // //get the originalImageId >>>> 
+    // const originalImage = await prisma.images.findFirst({
+    //   where:{
+    //     url:imageUrl
+    //   },
+    //   select:{
+    //     id:true
+    //   }
+    // })
+
+    // console.log("original Image Id : --- " ,originalImage) ;
+
+    //  //adding the generated images to the user's collection
+    //  if(validUrls.length > 0 && userId) {
+    //    const data: any = {
+    //      userId,
+    //      imageUrl: validUrls[0], // Store the first generated image URL
+    //    };
+    //    if (originalImage?.id) {
+    //      data.originalImageId = originalImage.id;
+    //    }
+    //    const collection = await prisma.aiGeneratedImage.create({
+    //      data
+    //    });
+    //  }
 
     // Return the output in the same format as Replicate API
     return NextResponse.json({
@@ -242,18 +283,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET method for health check
-export async function GET() {
-  return NextResponse.json({
-    status: 'ok',
-    message: 'FLUX Fill API is running',
-    model: 'black-forest-labs/flux-fill-dev',
-    capabilities: [
-      'Image inpainting',
-      'Multi-output generation (1-4 images)',
-      'Custom LoRA weights support',
-      'Configurable quality and format',
-      'Seed-based reproducible generation'
-    ]
-  });
-}

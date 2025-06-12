@@ -573,7 +573,7 @@ export default function GeneratePage() {
           prompt: finalPrompt,
           maskImage: maskImageUrl,
           numInferenceSteps: 28,
-          guidance: 70,
+          guidance: 80,
           numOutputs: 1,
           megapixels: "1",
           outputFormat: "jpg",

@@ -8,27 +8,23 @@ import { Download, Eraser, PaintBucket, RotateCcw } from 'lucide-react';
 const RHINOPLASTY_FRONT_OPTIONS = {
   roman: {
     label: "Roman Nose(Front)",
-    prompt: "TRANSFORM - Modify nasal anatomy from front view: DORSUM: Wider, more prominent bridge width. TIP: Angular, well-defined tip with slight point. COLUMELLA: Visible, strong central column. ALAE: Proportioned nostrils with angular shape. Create strong, authoritative nose appearance from front. VIEW: Maintain exact front-facing angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to have a wider, more prominent bridge with angular, well-defined tip and strong authoritative appearance from front view. CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   nubian: {
     label: "Nubian Nose(Front)",
-    prompt: "TRANSFORM - Modify nasal anatomy from front view: a nose with wider, more flared alae, fuller nasal tip, broader base, substantial columella, and a dorsum that may have a gentle curve or straight profile. The defining characteristic is the notably wider nostril openings and fuller alar base that creates a broader overall appearance. VIEW: Maintain exact front-facing angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to have notably wider nostril openings and fuller alar base that creates a broader overall appearance with a fuller nasal tip. CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   greek: {
     label: "Greek/Straight Nose(Front)",
-    prompt: "TRANSFORM - Modify nasal anatomy from front view: DORSUM: Narrow, straight bridge with clean lines. TIP: Refined, symmetrical tip with balanced proportions. COLUMELLA: Straight, well-defined central column. ALAE: Narrow, perfectly proportioned nostrils. Create classically proportioned, symmetrical nose from front. VIEW: Maintain exact front-facing angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to have narrow, straight bridge with clean lines and refined, symmetrical tip with perfectly proportioned nostrils creating a classically balanced appearance. CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   turnedUp: {
     label: "Turned Up Nose(Front)",
-    prompt: "TRANSFORM - Modify nasal anatomy from front view: a nose with moderate upward tilt of the tip, slightly concave or straight dorsum, proportionate alae, well-defined columella, and a nasal tip that tilts upward revealing partial nostril visibility. The defining characteristic is the gentle upward angle of the tip that's more subtle than a snub nose but still creates a lifted appearance. VIEW: Maintain exact front-facing angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to have a gentle upward angle of the tip with partial nostril visibility from front view, creating a lifted appearance that's more subtle than a button nose. CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   button: {
     label: "Button Nose(Front)",
-    prompt: "TRANSFORM - Modify nasal anatomy from front view: a nose with a short, upturned tip and concave or straight dorsum, small refined alae, delicate columella, cute upturned nasal tip that reveals the nostrils when viewed from the side, and small nostril openings. The defining characteristic is the distinctly upturned, petite tip that creates a youthful, button-like appearance. VIEW: Maintain exact front-facing angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
-  },
-  hawk: {
-    label: "Hawk/Aquiline Nose(Front)",
-    prompt: "TRANSFORM - Modify nasal anatomy from front view: a nose featuring a prominent curved dorsum with a distinctive downward hook at the tip, strong bridge that curves outward, well-developed alae, sturdy columella, and a nasal tip that curves downward creating a beak-like appearance. The defining characteristic is the pronounced convex curve of the bridge combined with the hooked, downward-pointing tip. VIEW: Maintain exact front-facing angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to be smaller and more compact, with a soft, rounded shape resembling a button nose with distinctly upturned, petite tip and small nostril openings. CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   custom: {
     label: "Custom",
@@ -38,27 +34,23 @@ const RHINOPLASTY_FRONT_OPTIONS = {
 const RHINOPLASTY_SIDE_OPTIONS = {
   roman: {
     label: "Roman Nose(Side)",
-    prompt: "TRANSFORM - Modify nasal anatomy from side profile view: DORSUM: Create subtle to moderate convex bump on the bridge, maintaining noble classical appearance. TIP: Well-defined tip with slight downward point, balanced proportions. COLUMELLA: Strong, well-defined central column visible in profile. ALAE: Proportioned nostril curve following the bridge line. NOSTRILS: Balanced opening size maintaining elegance. The defining characteristic is the gentle convex bump on the bridge that creates a distinguished, authoritative profile. VIEW: Maintain exact side profile angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to have a subtle to moderate convex bump on the bridge creating a noble classical appearance, with a well-defined tip that has a slight downward point and balanced proportions. CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   nubian: {
     label: "Nubian Nose(Side)",
-    prompt: "TRANSFORM - Modify nasal anatomy from side profile view: DORSUM: Straight to gently curved bridge with substantial width. TIP: Fuller, broader nasal tip with rounded appearance. COLUMELLA: Substantial, well-defined central column. ALAE: Notably wider, more flared nostril base creating broader overall appearance. NOSTRILS: Wider openings with fuller alar flare. The defining characteristic is the broader, more substantial base with wider nostril flare that creates a fuller profile appearance. VIEW: Maintain exact side profile angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to have a broader, more substantial base with notably wider, more flared nostril openings and a fuller nasal tip with rounded appearance, creating a fuller profile. CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   greek: {
     label: "Greek/Straight Nose(Side)",
-    prompt: "TRANSFORM - Modify nasal anatomy from side profile view: DORSUM: Perfectly straight bridge from nasion to tip with no curves, bumps, or deviations - creating classical linear profile. TIP: Refined, balanced tip maintaining the straight line aesthetic. COLUMELLA: Straight, well-proportioned central column. ALAE: Smoothly curved nostril following the linear profile. NOSTRILS: Symmetrical, proportioned openings. The defining characteristic is the completely straight, unbroken line from bridge to tip creating the classical Greek profile. VIEW: Maintain exact side profile angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to have a perfectly straight bridge from top to tip with no curves, bumps, or deviations, creating a classical linear profile with refined, balanced proportions. CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   turnedUp: {
     label: "Turned Up Nose(Side)",
-    prompt: "TRANSFORM - Modify nasal anatomy from side profile view: DORSUM: Straight to slightly concave bridge leading to upturned tip. TIP: Moderate upward tilt revealing partial nostril visibility from side view. COLUMELLA: Well-defined, angled upward with the tip. ALAE: Proportionate nostril curve following the upward angle. NOSTRILS: Partially visible due to upward tip angle, balanced size. The defining characteristic is the gentle upward angle of the tip that creates a lifted, youthful appearance more subtle than button nose. VIEW: Maintain exact side profile angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to have a moderate upward tilt of the tip revealing partial nostril visibility from side view, creating a lifted, youthful appearance that's more subtle than a button nose.CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   button: {
     label: "Button Nose(Side)",
-    prompt: "TRANSFORM - Modify nasal anatomy from side profile view: DORSUM: Short, concave or straight bridge leading to distinctly upturned tip. TIP: Petite, dramatically upturned creating button-like appearance with nostrils clearly visible from side. COLUMELLA: Delicate, small central column angled upward. ALAE: Small, refined nostril curves. NOSTRILS: Small openings, clearly visible due to significant upturn. The defining characteristic is the distinctly upturned, petite tip that creates a cute, youthful button-like profile with prominent nostril visibility. VIEW: Maintain exact side profile angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
-  },
-  hawk: {
-    label: "Hawk/Aquiline Nose(Side)",
-    prompt: "TRANSFORM - Modify nasal anatomy from side profile view: DORSUM: Prominent convex curve creating distinctive arched bridge. TIP: Hooked, downward-pointing tip creating beak-like appearance. COLUMELLA: Strong, sturdy central column supporting the curved structure. ALAE: Well-developed nostril curve following the hook. NOSTRILS: Proportioned openings with downward angle following tip direction. The defining characteristic is the pronounced convex bridge curve combined with the distinctive hooked, downward-pointing tip creating an aquiline/eagle-like profile. VIEW: Maintain exact side profile angle. CRITICAL: Do not change facial expression, eye color, lip shape, skin texture, or face angle. PRESERVE: exact same lighting, shadows, and image quality."
+    prompt: "Modify the nose to be smaller and more compact, with a soft, rounded shape resembling a button nose with a petite, dramatically upturned tip and nostrils clearly visible from the side. CRITICAL: preserve exact skin tone, lighting, expression, lip color, lip shape, lip size, all other facial features unchanged. No color changes. No lighting changes. Same person, same face, only nose different."
   },
   custom: {
     label: "Custom",
@@ -573,7 +565,7 @@ export default function GeneratePage() {
           prompt: finalPrompt,
           maskImage: maskImageUrl,
           numInferenceSteps: 28,
-          guidance: 80,
+          guidance: 74,
           numOutputs: 1,
           megapixels: "1",
           outputFormat: "jpg",

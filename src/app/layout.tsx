@@ -31,10 +31,10 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-blue-900 via-blue-800 to-blue-600 text-white`}>
         <SessionProvider>
           {!isAuthRoute && <Navbar />}
-          <main className={!isAuthRoute ? "pt-24 md:pt-20" : ""}>
+          <main > 
             {/* Add padding top to account for fixed navbar - more on mobile due to two-row navbar */}
             {children}
           </main>

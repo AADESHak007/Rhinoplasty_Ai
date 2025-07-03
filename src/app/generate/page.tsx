@@ -236,68 +236,59 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-purple-700">
-      <h3 className="text-xl font-bold mb-4 text-center text-purple-400">Create Your Mask</h3>
-      
+    <div className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 rounded-2xl shadow-2xl p-8 border border-blue-400/30 backdrop-blur-md">
+      <h3 className="text-2xl font-bold mb-6 text-center text-blue-200 tracking-wide">Create Your Mask</h3>
       {/* Controls */}
-      <div className="mb-4 flex flex-wrap gap-4 items-center justify-center">
+      <div className="mb-6 flex flex-wrap gap-4 items-center justify-center">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-300">Brush Size:</label>
+          <label className="text-sm font-medium text-blue-100">Brush Size:</label>
           <input
             type="range"
             min="5"
             max="50"
             value={brushSize}
             onChange={(e) => setBrushSize(parseInt(e.target.value))}
-            className="w-20"
+            className="w-24 accent-blue-400"
           />
-          <span className="text-sm w-8 text-gray-300">{brushSize}</span>
+          <span className="text-sm w-8 text-blue-100">{brushSize}</span>
         </div>
-        
         <div className="flex gap-2">
           <button
             onClick={() => setTool('brush')}
-            className={`px-3 py-2 rounded flex items-center gap-1 transition-colors ${
-              tool === 'brush' ? 'bg-purple-600 text-white' : 'bg-gray-600 text-gray-300'
+            className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-1 transition-colors shadow-md border border-blue-400/30 ${
+              tool === 'brush' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-blue-800 text-blue-100 hover:bg-blue-700'
             }`}
           >
-            <PaintBucket className="w-4 h-4" />
-            Brush
+            <PaintBucket className="w-4 h-4" /> Brush
           </button>
           <button
             onClick={() => setTool('eraser')}
-            className={`px-3 py-2 rounded flex items-center gap-1 transition-colors ${
-              tool === 'eraser' ? 'bg-purple-600 text-white' : 'bg-gray-600 text-gray-300'
+            className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-1 transition-colors shadow-md border border-blue-400/30 ${
+              tool === 'eraser' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-blue-800 text-blue-100 hover:bg-blue-700'
             }`}
           >
-            <Eraser className="w-4 h-4" />
-            Eraser
+            <Eraser className="w-4 h-4" /> Eraser
           </button>
         </div>
-        
         <button
           onClick={clearMask}
-          className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded flex items-center gap-1 transition-colors"
+          className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg font-semibold flex items-center gap-1 transition-colors shadow-md border border-red-400/40"
         >
-          <RotateCcw className="w-4 h-4" />
-          Clear
+          <RotateCcw className="w-4 h-4" /> Clear
         </button>
-        
         <button
           onClick={downloadMask}
-          className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded flex items-center gap-1 transition-colors"
+          className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-lg font-semibold flex items-center gap-1 transition-colors shadow-md border border-green-400/40"
         >
-          <Download className="w-4 h-4" />
-          Download
+          <Download className="w-4 h-4" /> Download
         </button>
-
         <button
           onClick={generateMask}
           disabled={isSavingMask}
-          className={`px-4 py-2 rounded font-medium transition-colors ${
+          className={`px-6 py-2 rounded-lg font-bold transition-colors shadow-md border border-purple-400/40 ${
             isSavingMask 
-              ? 'bg-gray-600 cursor-not-allowed text-gray-300' 
-              : 'bg-purple-600 hover:bg-purple-700 text-white'
+              ? 'bg-blue-500/60 cursor-not-allowed text-blue-100' 
+              : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
           }`}
         >
           {isSavingMask ? (
@@ -310,27 +301,25 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
           )}
         </button>
       </div>
-
       {/* Canvas Container */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Original Image */}
         <div className="text-center">
-          <h4 className="text-lg font-semibold mb-2 text-gray-300">Original Image</h4>
-          <div className="border border-gray-600 rounded inline-block">
+          <h4 className="text-lg font-semibold mb-2 text-blue-100">Original Image</h4>
+          <div className="border-2 border-blue-400/30 rounded-xl inline-block bg-blue-900/40">
             <canvas
               ref={imageCanvasRef}
-              className="max-w-full max-h-80 block rounded"
+              className="max-w-full max-h-80 block rounded-xl"
             />
           </div>
         </div>
-        
         {/* Mask Canvas */}
         <div className="text-center">
-          <h4 className="text-lg font-semibold mb-2 text-gray-300">Mask (White = Change, Black = Keep)</h4>
-          <div className="border border-gray-600 rounded inline-block">
+          <h4 className="text-lg font-semibold mb-2 text-blue-100">Mask (White = Change, Black = Keep)</h4>
+          <div className="border-2 border-blue-400/30 rounded-xl inline-block bg-blue-900/40">
             <canvas
               ref={canvasRef}
-              className="max-w-full max-h-80 block cursor-crosshair rounded"
+              className="max-w-full max-h-80 block cursor-crosshair rounded-xl"
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}
@@ -339,35 +328,32 @@ const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl
           </div>
         </div>
       </div>
-
       {/* Instructions */}
-      <div className="mt-6 p-4 bg-purple-900/20 rounded-lg border border-purple-700">
-        <h4 className="font-semibold text-purple-300 mb-2">Instructions:</h4>
-        <ul className="text-sm text-gray-300 space-y-1">
+      <div className="mt-8 p-5 bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl border border-purple-400/40">
+        <h4 className="font-semibold text-purple-200 mb-2">Instructions:</h4>
+        <ul className="text-sm text-blue-100 space-y-1">
           <li>• <strong className="text-white">White areas</strong> will be modified by AI (nose area)</li>
           <li>• <strong className="text-white">Black areas</strong> will remain unchanged</li>
           <li>• Use the brush to paint white on the nose area you want to change</li>
           <li>• Use the eraser to remove white areas (make them black again)</li>
-          <li>• Click &quot;Generate Mask&quot; when ready to proceed</li>
+          <li>• Click .. Generate Mask .. when ready to proceed</li>
         </ul>
       </div>
-
       {isSavingMask && (
-        <div className="mt-4 p-4 bg-blue-900/20 rounded-lg border border-blue-700">
+        <div className="mt-6 p-4 bg-blue-900/30 rounded-xl border border-blue-400/40">
           <div className="flex items-center">
-            <div className="w-5 h-5 mr-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 mr-3 border-2 border-blue-300 border-t-transparent rounded-full animate-spin" />
             <div>
-              <p className="text-blue-300 font-semibold">Saving your mask...</p>
-              <p className="text-sm text-blue-400 mt-1">Please wait while we process your mask.</p>
+              <p className="text-blue-200 font-semibold">Saving your mask...</p>
+              <p className="text-sm text-blue-100 mt-1">Please wait while we process your mask.</p>
             </div>
           </div>
         </div>
       )}
-
       {maskDataUrl && !isSavingMask && (
-        <div className="mt-4 p-4 bg-green-900/20 rounded-lg border border-green-700">
-          <p className="text-green-300 font-semibold">✅ Mask generated successfully!</p>
-          <p className="text-sm text-green-400 mt-1">You can now generate the simulation.</p>
+        <div className="mt-6 p-4 bg-green-900/30 rounded-xl border border-green-400/40">
+          <p className="text-green-200 font-semibold">✅ Mask generated successfully!</p>
+          <p className="text-sm text-green-100 mt-1">You can now generate the simulation.</p>
         </div>
       )}
     </div>
@@ -615,78 +601,30 @@ export default function GeneratePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 min-h-screen min-w-screen text-white">
-      <style jsx>{`
-        .dropdown-container {
-          margin-bottom: 2rem;
-          z-index: 10;
-        }
-        .dropdown-container select {
-          position: relative !important;
-          z-index: 10;
-          max-height: 200px;
-          overflow-y: auto;
-        }
-        /* Ensure dropdown opens downward */
-        .dropdown-container select:focus {
-          position: relative !important;
-          z-index: 999;
-        }
-        /* Add space below for dropdown */
-        .form-container {
-          padding-bottom: 20rem;
-        }
-        /* Custom scrollbar for dropdown */
-        .dropdown-container select::-webkit-scrollbar {
-          width: 8px;
-        }
-        .dropdown-container select::-webkit-scrollbar-track {
-          background: #374151;
-          border-radius: 4px;
-        }
-        .dropdown-container select::-webkit-scrollbar-thumb {
-          background: #6b7280;
-          border-radius: 4px;
-        }
-        .dropdown-container select::-webkit-scrollbar-thumb:hover {
-          background: #9ca3af;
-        }
-      `}</style>
-      <h1 className="text-3xl font-bold text-center mb-8 text-purple-400">AI Rhinoplasty Simulator</h1>
-      
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="relative min-h-screen min-w-screen bg-gradient-to-br from-[#0a2342] via-[#185a9d] to-[#43cea2] text-white py-8 px-2">
+      <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-12 text-white drop-shadow-xl tracking-tight">AI Rhinoplasty Simulator</h1>
+      <div className="max-w-3xl mx-auto space-y-10">
         {/* Step 1: Upload Image */}
-        <div className="bg-gray-900 rounded-lg shadow-lg p-6 border border-purple-800 relative overflow-hidden">
-          {/* Background glowing effect */}
-          <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center top, rgba(128, 0, 128, 0.1), transparent 50%)' }}></div>
-
-          <div className="relative z-10 space-y-6">
-            <h2 className="text-xl font-bold text-center text-purple-400 mb-4">Step 1: Upload Your Photo</h2>
-            
+        <div className="relative bg-white rounded-2xl shadow-2xl p-8 border border-blue-100">
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#43cea2] to-[#185a9d] text-white px-6 py-2 rounded-full shadow-lg font-bold text-lg z-10 border-4 border-blue-200">Step 1</div>
+          <div className="relative z-10 space-y-6 pt-6">
+            <h2 className="text-2xl font-bold text-center text-[#185a9d] mb-4">Upload Your Photo</h2>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Choose Your Photo
-              </label>
+              <label className="block text-sm font-medium text-[#185a9d] mb-2">Choose Your Photo</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageSelect}
-                className="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-500 file:text-white hover:file:bg-purple-600"
+                className="w-full px-3 py-2 border border-blue-200 rounded-md bg-blue-50 text-[#0a2342] focus:outline-none focus:ring-2 focus:ring-[#43cea2] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#185a9d] file:text-white hover:file:bg-[#43cea2] "
               />
             </div>
-
             {previewUrl && (
               <div className="space-y-4">
-                <div className="text-center text-gray-400 text-sm mb-4">
-                  ✅ Image selected successfully
-                </div>
-
+                <div className="text-center text-[#185a9d] text-sm mb-4">Image selected successfully !!!</div>
                 <button
                   onClick={handleUploadAndShowMask}
                   disabled={isLoading}
-                  className={`w-full py-3 px-4 rounded-md text-white font-medium transition-colors ${
-                    isLoading ? 'bg-gray-600 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'
-                  }`}
+                  className={`w-full py-3 px-4 rounded-md text-white font-semibold transition-colors ${isLoading ? 'bg-blue-400/60 cursor-not-allowed' : 'bg-gradient-to-r from-[#43cea2] to-[#185a9d] hover:from-[#185a9d] hover:to-[#43cea2]'}`}
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center">
@@ -704,24 +642,22 @@ export default function GeneratePage() {
 
         {/* Step 2: Create Mask */}
         {showMaskGenerator && originalImageUrl && (
-          <MaskGenerator 
-            uploadedImageUrl={originalImageUrl} 
-            onMaskGenerated={handleMaskGenerated}
-          />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 border border-blue-100">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#43cea2] to-[#185a9d] text-white px-6 py-2 rounded-full shadow-lg font-bold text-lg z-10 border-4 border-blue-200">Step 2</div>
+            <div className="relative z-10 pt-6">
+              <MaskGenerator uploadedImageUrl={originalImageUrl} onMaskGenerated={handleMaskGenerated} />
+            </div>
+          </div>
         )}
 
         {/* Step 3: Configure & Generate */}
         {maskImageUrl && (
-          <div className="bg-gray-900 rounded-lg shadow-lg p-6 border border-purple-800 relative overflow-hidden">
-            <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center top, rgba(128, 0, 128, 0.1), transparent 50%)' }}></div>
-
-            <form onSubmit={handleSubmit} className="space-y-6 relative z-10 form-container">
-              <h2 className="text-xl font-bold text-center text-purple-400 mb-4">Step 3: Configure & Generate</h2>
-
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 border border-blue-100">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#43cea2] to-[#185a9d] text-white px-6 py-2 rounded-full shadow-lg font-bold text-lg z-10 border-4 border-blue-200">Step 3</div>
+            <form onSubmit={handleSubmit} className="space-y-6 relative z-10 pt-6">
+              <h2 className="text-2xl font-bold text-center text-[#185a9d] mb-4">Configure & Generate</h2>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Select View Angle
-                </label>
+                <label className="block text-sm font-medium text-[#185a9d] mb-2">Select View Angle</label>
                 <div className="flex space-x-4">
                   <label className="flex items-center">
                     <input
@@ -729,9 +665,9 @@ export default function GeneratePage() {
                       value="front"
                       checked={selectedView === "front"}
                       onChange={() => handleViewChange("front")}
-                      className="mr-2 text-purple-600 focus:ring-purple-600"
+                      className="mr-2 text-blue-400 focus:ring-blue-400"
                     />
-                    <span className="text-gray-300">Front View</span>
+                    <span className="text-zinc-700 font-semibold text-sm">Front View</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -739,22 +675,19 @@ export default function GeneratePage() {
                       value="side"
                       checked={selectedView === "side"}
                       onChange={() => handleViewChange("side")}
-                      className="mr-2 text-purple-600 focus:ring-purple-600"
+                      className="mr-2 text-blue-400 focus:ring-blue-400"
                     />
-                    <span className="text-gray-300">Side View</span>
+                    <span className="text-zinc-700 font-semibold text-sm">Side View</span>
                   </label>
                 </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Select Nose Type
-                </label>
+                <label className="block text-sm font-medium text-[#185a9d] mb-2">Select Nose Type</label>
                 <div className="relative dropdown-container">
                   <select
                     value={selectedOption}
                     onChange={(e) => setSelectedOption(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 appearance-none"
+                    className="w-full px-3 py-2 border border-blue-400/30 rounded-md bg-blue-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
                       backgroundPosition: 'right 0.5rem center',
@@ -764,25 +697,20 @@ export default function GeneratePage() {
                     }}
                   >
                     {Object.entries(currentOptions).map(([key, value]) => (
-                      <option key={key} value={key}>
-                        {value.label}
-                      </option>
+                      <option key={key} value={key}>{value.label}</option>
                     ))}
                   </select>
                 </div>
               </div>
-
               {selectedOption === "custom" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Please describe how you want your nose to look (mention the view: FRONT or SIDE)
-                  </label>
+                  <label className="block text-sm font-medium text-[#185a9d] mb-2">Please describe how you want your nose to look (mention the view: FRONT or SIDE)</label>
                   <div className="space-y-3">
                     <textarea
                       value={customPrompt}
                       onChange={(e) => setCustomPrompt(e.target.value)}
                       placeholder="Describe how you want your nose to look..."
-                      className="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      className="w-full px-3 py-2 border border-blue-400/30 rounded-md bg-blue-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                       rows={4}
                     />
                     <div className="flex space-x-2">
@@ -790,11 +718,7 @@ export default function GeneratePage() {
                         type="button"
                         onClick={optimizePrompt}
                         disabled={!customPrompt.trim() || isOptimizing}
-                        className={`flex-1 py-2 px-4 rounded-md text-white font-medium transition-colors ${
-                          !customPrompt.trim() || isOptimizing
-                            ? 'bg-gray-600 cursor-not-allowed' 
-                            : 'bg-green-600 hover:bg-green-700'
-                        }`}
+                        className={`flex-1 py-2 px-4 rounded-md text-white font-semibold transition-colors ${!customPrompt.trim() || isOptimizing ? 'bg-blue-500/60 cursor-not-allowed' : 'bg-[#185a9d] text-white hover:bg-[#43cea2]'}`}
                       >
                         {isOptimizing ? (
                           <div className="flex items-center justify-center">
@@ -809,35 +733,28 @@ export default function GeneratePage() {
                         <button
                           type="button"
                           onClick={resetPrompt}
-                          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
+                          className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-md transition-colors"
                           title="Clear prompt"
                         >
-                          🗑️
+                          CLEAR
                         </button>
                       )}
                     </div>
                     {optimizedPrompt && (
-                      <div className="text-sm text-green-400 bg-green-900/20 p-3 rounded-md border border-green-700">
-                        <strong>✅ Optimized:</strong> Your prompt has been enhanced for better results!
+                      <div className="text-sm text-center text-green-400 bg-blue-900 p-3 rounded-md border border-green-700">
+                        <strong>Optimized:</strong> Your prompt has been enhanced for better results!
                       </div>
                     )}
                   </div>
                 </div>
               )}
-
               {error && (
-                <div className="text-red-500 text-sm mt-2">
-                  {error}
-                </div>
+                <div className="text-red-400 text-sm mt-2">{error}</div>
               )}
-
               <button
                 type="submit"
                 disabled={!originalImageUrl || !maskImageUrl || (selectedOption === "custom" && !customPrompt) || isLoading}
-                className={`w-full py-3 px-4 rounded-md text-white font-medium transition-colors ${
-                  !originalImageUrl || !maskImageUrl || (selectedOption === "custom" && !customPrompt) || isLoading
-                    ? 'bg-gray-600 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'
-                }`}
+                className={`w-full py-3 px-4 rounded-md text-white font-semibold transition-colors ${!originalImageUrl || !maskImageUrl || (selectedOption === "custom" && !customPrompt) || isLoading ? 'bg-blue-500/60 cursor-not-allowed' : 'bg-gradient-to-r from-[#43cea2] to-[#185a9d] hover:from-[#185a9d] hover:to-[#43cea2]'}`}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
@@ -848,35 +765,28 @@ export default function GeneratePage() {
                   "Generate Simulation"
                 )}
               </button>
-
-              {/* Success message after generation */}
               {generatedImageUrl && !isLoading && (
-                <div className="mt-4 p-4 bg-green-900/20 rounded-lg border border-green-700">
-                  <div className="text-center">
-                    <p className="text-green-300 font-semibold text-lg">🎉 Generation Complete!</p>
-                    <p className="text-green-400 mt-2">
-                      Your rhinoplasty simulation is ready. 
-                      <span className="font-medium"> Scroll down to see your results!</span>
-                    </p>
-                    <div className="mt-2 text-green-300 animate-bounce">
-                      ↓ ↓ ↓
-                    </div>
+                <div className="mt-4 p-4 bg-gradient-to-r from-[#43cea2] to-[#185a9d] hover:from-[#185a9d] hover:to-[#43cea2] rounded-lg border border-green-700">
+                  <div className="text-center ">
+                    <p className="text-white font-semibold text-lg"> Generation Complete!</p>
+                    <p className="text-zinc-200 mt-2">Your rhinoplasty simulation is ready. <span className="font-medium"> Scroll down to see your results!</span></p>
+                    <div className="mt-2 text-green-300 animate-bounce">↓ ↓ ↓</div>
                   </div>
                 </div>
               )}
             </form>
           </div>
         )}
-
-        {/* Results */}
+        {/* Results (consistent style) */}
         {maskImageUrl && (isLoading || generatedImageUrl) && (
-          <div className="bg-gray-900 rounded-lg shadow-lg p-6 border border-purple-800">
-            <h2 className="text-xl font-bold text-center text-purple-400 mb-6">Results</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {originalImageUrl && (
-                <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-purple-700">
-                  <h3 className="text-lg font-medium text-gray-200 mb-2">Original Photo</h3>
-                  <div className="relative w-full h-80 rounded-lg overflow-hidden border border-gray-600">
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 border border-blue-100 mt-8">
+            <h2 className="text-2xl font-bold text-center mb-8 text-[#185a9d] tracking-wide">Results</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Original Photo Card */}
+              <div className="bg-blue-50 rounded-xl shadow-lg p-4 border-2 border-blue-100 flex flex-col items-center">
+                <h3 className="text-lg font-semibold mb-4 text-[#185a9d]">Original Photo</h3>
+                <div className="rounded-xl overflow-hidden border border-blue-200 bg-white flex items-center justify-center w-full h-80 relative">
+                  {originalImageUrl && (
                     <Image
                       src={originalImageUrl}
                       alt="Original"
@@ -884,36 +794,31 @@ export default function GeneratePage() {
                       className="object-contain"
                       unoptimized
                     />
-                  </div>
+                  )}
                 </div>
-              )}
-
-              {isLoading && (
-                <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-purple-700">
-                  <h3 className="text-lg font-medium text-gray-200 mb-2">Simulated Outcome</h3>
-                  <div className="relative w-full h-80 rounded-lg overflow-hidden border border-gray-600 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-12 h-12 mx-auto mb-4 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                      <p className="text-gray-300">Generating your simulation...</p>
+              </div>
+              {/* Simulated Outcome Card */}
+              <div className="bg-blue-50 rounded-xl shadow-lg p-4 border-2 border-blue-100 flex flex-col items-center">
+                <h3 className="text-lg font-semibold mb-4 text-[#185a9d]">Simulated Outcome</h3>
+                <div className="rounded-xl overflow-hidden border border-blue-200 bg-white flex items-center justify-center w-full h-80 relative">
+                  {isLoading ? (
+                    <div className="flex flex-col items-center justify-center w-full h-full">
+                      <div className="w-12 h-12 mx-auto mb-4 border-4 border-[#185a9d] border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-[#185a9d]">Generating your simulation...</p>
                     </div>
-                  </div>
+                  ) : (
+                    generatedImageUrl && generatedImageUrl.trim() !== "" && (
+                      <Image
+                        src={generatedImageUrl}
+                        alt="Generated"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    )
+                  )}
                 </div>
-              )}
-
-              {generatedImageUrl && generatedImageUrl.trim() !== "" && !isLoading && (
-                <div className="bg-gray-800 rounded-lg shadow-lg p-4 border border-purple-700">
-                  <h3 className="text-lg font-medium text-gray-200 mb-2">Simulated Outcome</h3>
-                  <div className="relative w-full h-80 rounded-lg overflow-hidden border border-gray-600">
-                    <Image
-                      src={generatedImageUrl}
-                      alt="Generated"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         )}

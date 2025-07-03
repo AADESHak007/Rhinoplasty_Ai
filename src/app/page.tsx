@@ -24,7 +24,7 @@ export default async function Home() {
       {/* Hero Section */}
       <section className="relative w-full text-center py-32 px-4 z-10 flex flex-col items-center justify-center">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-8 text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.45)] tracking-tight">
-          Superhuman Rhinoplasty Visualization
+          Virtual Rhinoplasty Visualization
         </h1>
         <p className="text-lg md:text-2xl text-white/90 mb-12 max-w-2xl mx-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.25)]">
           Empower your journey with AI — visualize your rhinoplasty transformation before surgery. Upload your photo and see potential outcomes instantly.

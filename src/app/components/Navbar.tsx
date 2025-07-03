@@ -32,7 +32,7 @@ const Navbar = () => {
           />
         </div>
         <span className="text-2xl md:text-3xl font-extrabold text-blue-100 tracking-wide whitespace-nowrap">
-          RHINOPLASTY AI
+          RHINOPLASTY-AI
         </span>
       </Link>
 
@@ -55,14 +55,14 @@ const Navbar = () => {
       </ul>
 
       {/* Authentication Section */}
-      <div className="flex items-center space-x-2 md:space-x-4">
+      <div className="flex items-center space-x-2 md:space-x-4 text-white">
         {status === "loading" ? (
           <div className="text-blue-200 text-sm">Loading...</div>
         ) : session ? (
           <>
             {/* User Info - Hidden on mobile */}
-            <div className="hidden lg:block text-blue-100 text-sm">
-              Welcome, <span className="text-blue-200 font-semibold">{session.user?.name || session.user?.email}</span>
+            <div className="hidden lg:block text-white text-sm font-semibold">
+              Welcome, <span className="text-white text-lg font-semibold">{session.user?.name || session.user?.email}</span>
             </div>
             {/* Logout Button */}
             <button 

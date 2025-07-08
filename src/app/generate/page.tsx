@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { Download, Eraser, PaintBucket, RotateCcw } from 'lucide-react';
+import { useEffect } from 'react';
+
+import { Sparkles } from 'lucide-react';
 
 // Predefined nose type prompts
 const RHINOPLASTY_FRONT_OPTIONS = {
@@ -20,7 +22,7 @@ const RHINOPLASTY_FRONT_OPTIONS = {
   },
   turnedUp: {
     label: "Turned Up Nose(Front)",
-    prompt: "NOSE MODIFICATION ONLY: Transform the nose to have a gentle upward angle of the nasal tip with partial nostril visibility from front view, creating a subtly lifted appearance that's refined and elegant. ABSOLUTE PRESERVATION REQUIRED: Keep identical eye shape, eye color, eyebrow shape, eyebrow color, eyebrow position, forehead, cheek structure, cheekbone definition, jawline, chin shape, lip color (exact RGB values), lip texture, lip fullness, lip outline, mouth corners, philtrum, skin texture, skin tone (exact color match), facial hair, lighting direction, shadow placement, highlight placement, facial expression, head angle, camera angle, background. DO NOT alter face shape, facial proportions, or any feature outside the nose area. Same person, identical appearance, only nasal structure modified."
+    prompt: "NOSE MODIFICATION ONLY: Transform the nose to have a pronounced upward angle of the nasal tip with clearly visible nostrils from front view, creating a shorter nose appearance with distinct nostril prominence. The upward tilt should be noticeable and well-defined. ABSOLUTE PRESERVATION REQUIRED: Keep identical eye shape, eye color, eyebrow shape, eyebrow color, eyebrow position, forehead, cheek structure, cheekbone definition, jawline, chin shape, lip color (exact RGB values), lip texture, lip fullness, lip outline, mouth corners, philtrum, skin texture, skin tone (exact color match), facial hair, lighting direction, shadow placement, highlight placement, facial expression, head angle, camera angle, background. DO NOT alter face shape, facial proportions, or any feature outside the nose area. Same person, identical appearance, only nasal structure modified."
   },
   button: {
     label: "Button Nose(Front)",
@@ -58,322 +60,26 @@ const RHINOPLASTY_SIDE_OPTIONS = {
   }
 };
 
-// MaskGenerator Component
-const MaskGenerator = ({ uploadedImageUrl, onMaskGenerated }: { uploadedImageUrl: string, onMaskGenerated: (maskUrl: string) => void }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imageCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [brushSize, setBrushSize] = useState(20);
-  const [tool, setTool] = useState('brush'); // 'brush' or 'eraser'
-  const [maskDataUrl, setMaskDataUrl] = useState<string | null>(null);
-  const [isSavingMask, setIsSavingMask] = useState(false);
-
-  useEffect(() => {
-    if (uploadedImageUrl) {
-      const drawImageOnCanvas = () => {
-        const canvas = imageCanvasRef.current;
-        const ctx = canvas?.getContext('2d');
-        if (!canvas || !ctx) return;
-
-        const img = document.createElement('img');
-        
-        img.onload = () => {
-          // Set canvas size to match image
-          canvas.width = img.width;
-          canvas.height = img.height;
-          
-          // Draw the image
-          ctx.drawImage(img, 0, 0);
-          
-          // Initialize mask canvas with same dimensions
-          const maskCanvas = canvasRef.current;
-          if (!maskCanvas) return;
-          
-          maskCanvas.width = img.width;
-          maskCanvas.height = img.height;
-          
-          // Fill with black (preserved areas)
-          const maskCtx = maskCanvas.getContext('2d');
-          if (maskCtx) {
-            maskCtx.fillStyle = 'black';
-            maskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
-          }
-        };
-        
-        img.crossOrigin = 'anonymous';
-        img.src = uploadedImageUrl;
-      };
-      
-      drawImageOnCanvas();
-    }
-  }, [uploadedImageUrl]);
-
-  const startDrawing = (e: React.MouseEvent) => {
-    setIsDrawing(true);
-    draw(e);
-  };
-
-  const draw = (e: React.MouseEvent) => {
-    if (!isDrawing) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
-    
-    ctx.globalCompositeOperation = tool === 'brush' ? 'source-over' : 'destination-out';
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(x, y, brushSize, 0, 2 * Math.PI);
-    ctx.fill();
-  };
-
-  const stopDrawing = () => {
-    setIsDrawing(false);
-  };
-
-  const clearMask = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
-
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    setMaskDataUrl(null);
-  };
-
-  const generateMask = async () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const dataUrl = canvas.toDataURL('image/png');
-    setMaskDataUrl(dataUrl);
-    setIsSavingMask(true);
-    
-    // Upload mask to get URL with retry logic
-    const uploadMaskWithRetry = async (maxRetries = 3) => {
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          console.log(`Mask upload attempt ${attempt}/${maxRetries}`);
-          
-          const response = await fetch(dataUrl);
-          const blob = await response.blob();
-          const file = new File([blob], 'mask.png', { type: 'image/png' });
-          
-          const formData = new FormData();
-          formData.append('file', file);
-          
-          // Remove timeout - let the mask upload take as long as it needs
-          const uploadResponse = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData,
-          });
-          
-          if (!uploadResponse.ok) {
-            const errorData = await uploadResponse.json().catch(() => ({}));
-            throw new Error(errorData.error || `Mask upload failed (${uploadResponse.status})`);
-          }
-          
-          const { url } = await uploadResponse.json();
-          
-          if (!url) {
-            throw new Error("No URL returned from mask upload");
-          }
-          
-          console.log("Mask upload successful:", url);
-          onMaskGenerated(url);
-          return url;
-          
-        } catch (error) {
-          console.error(`Mask upload attempt ${attempt} failed:`, error);
-          
-          if (error instanceof Error) {
-            // Only retry on network errors
-            if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('NetworkError')) {
-              if (attempt < maxRetries) {
-                console.log(`Network error, retrying mask upload in 2 seconds... (${attempt}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                continue;
-              } else {
-                throw new Error("Network error during mask upload after multiple attempts. Please try again.");
-              }
-            } else {
-              throw error;
-            }
-          }
-        }
-      }
-    };
-    
-    try {
-      return await uploadMaskWithRetry();
-    } catch (error) {
-      console.error('Final mask upload error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to upload mask. Please try again.');
-      return dataUrl;
-    } finally {
-      setIsSavingMask(false);
-    }
-  };
-
-  const downloadMask = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const dataUrl = canvas.toDataURL('image/png');
-    setMaskDataUrl(dataUrl);
-    
-    const link = document.createElement('a');
-    link.download = 'mask.png';
-    link.href = dataUrl;
-    link.click();
-  };
-
-  return (
-    <div className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 rounded-2xl shadow-2xl p-8 border border-blue-400/30 backdrop-blur-md">
-      <h3 className="text-2xl font-bold mb-6 text-center text-blue-200 tracking-wide">Create Your Mask</h3>
-      {/* Controls */}
-      <div className="mb-6 flex flex-wrap gap-4 items-center justify-center">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-blue-100">Brush Size:</label>
-          <input
-            type="range"
-            min="5"
-            max="50"
-            value={brushSize}
-            onChange={(e) => setBrushSize(parseInt(e.target.value))}
-            className="w-24 accent-blue-400"
-          />
-          <span className="text-sm w-8 text-blue-100">{brushSize}</span>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setTool('brush')}
-            className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-1 transition-colors shadow-md border border-blue-400/30 ${
-              tool === 'brush' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-blue-800 text-blue-100 hover:bg-blue-700'
-            }`}
-          >
-            <PaintBucket className="w-4 h-4" /> Brush
-          </button>
-          <button
-            onClick={() => setTool('eraser')}
-            className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-1 transition-colors shadow-md border border-blue-400/30 ${
-              tool === 'eraser' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-blue-800 text-blue-100 hover:bg-blue-700'
-            }`}
-          >
-            <Eraser className="w-4 h-4" /> Eraser
-          </button>
-        </div>
-        <button
-          onClick={clearMask}
-          className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg font-semibold flex items-center gap-1 transition-colors shadow-md border border-red-400/40"
-        >
-          <RotateCcw className="w-4 h-4" /> Clear
-        </button>
-        <button
-          onClick={downloadMask}
-          className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-lg font-semibold flex items-center gap-1 transition-colors shadow-md border border-green-400/40"
-        >
-          <Download className="w-4 h-4" /> Download
-        </button>
-        <button
-          onClick={generateMask}
-          disabled={isSavingMask}
-          className={`px-6 py-2 rounded-lg font-bold transition-colors shadow-md border border-purple-400/40 ${
-            isSavingMask 
-              ? 'bg-blue-500/60 cursor-not-allowed text-blue-100' 
-              : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
-          }`}
-        >
-          {isSavingMask ? (
-            <div className="flex items-center">
-              <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Saving Mask...
-            </div>
-          ) : (
-            "Generate Mask"
-          )}
-        </button>
-      </div>
-      {/* Canvas Container */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Original Image */}
-        <div className="text-center">
-          <h4 className="text-lg font-semibold mb-2 text-blue-100">Original Image</h4>
-          <div className="border-2 border-blue-400/30 rounded-xl inline-block bg-blue-900/40">
-            <canvas
-              ref={imageCanvasRef}
-              className="max-w-full max-h-80 block rounded-xl"
-            />
-          </div>
-        </div>
-        {/* Mask Canvas */}
-        <div className="text-center">
-          <h4 className="text-lg font-semibold mb-2 text-blue-100">Mask (White = Change, Black = Keep)</h4>
-          <div className="border-2 border-blue-400/30 rounded-xl inline-block bg-blue-900/40">
-            <canvas
-              ref={canvasRef}
-              className="max-w-full max-h-80 block cursor-crosshair rounded-xl"
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-            />
-          </div>
-        </div>
-      </div>
-      {/* Instructions */}
-      <div className="mt-8 p-5 bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl border border-purple-400/40">
-        <h4 className="font-semibold text-purple-200 mb-2">Instructions:</h4>
-        <ul className="text-sm text-blue-100 space-y-1">
-          <li>• <strong className="text-white">White areas</strong> will be modified by AI (nose area)</li>
-          <li>• <strong className="text-white">Black areas</strong> will remain unchanged</li>
-          <li>• Use the brush to paint white on the nose area you want to change</li>
-          <li>• Use the eraser to remove white areas (make them black again)</li>
-          <li>• Click .. Generate Mask .. when ready to proceed</li>
-        </ul>
-      </div>
-      {isSavingMask && (
-        <div className="mt-6 p-4 bg-blue-900/30 rounded-xl border border-blue-400/40">
-          <div className="flex items-center">
-            <div className="w-5 h-5 mr-3 border-2 border-blue-300 border-t-transparent rounded-full animate-spin" />
-            <div>
-              <p className="text-blue-200 font-semibold">Saving your mask...</p>
-              <p className="text-sm text-blue-100 mt-1">Please wait while we process your mask.</p>
-            </div>
-          </div>
-        </div>
-      )}
-      {maskDataUrl && !isSavingMask && (
-        <div className="mt-6 p-4 bg-green-900/30 rounded-xl border border-green-400/40">
-          <p className="text-green-200 font-semibold">✅ Mask generated successfully!</p>
-          <p className="text-sm text-green-100 mt-1">You can now generate the simulation.</p>
-        </div>
-      )}
-    </div>
-  );
-};
 
 export default function GeneratePage() {
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [selectedView, setSelectedView] = useState<string>("front");
   const [selectedOption, setSelectedOption] = useState<string>("roman");
   const [customPrompt, setCustomPrompt] = useState("");
-  const [optimizedPrompt, setOptimizedPrompt] = useState("");
-  const [isOptimizing, setIsOptimizing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState("");
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const [maskImageUrl, setMaskImageUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [showMaskGenerator, setShowMaskGenerator] = useState(false);
+  const [aiImageDbId, setAiImageDbId] = useState<string>("");
+  const [aiImageCloudUrl, setAiImageCloudUrl] = useState<string>("");
+  const [isStoring, setIsStoring] = useState(false);
+  // Add new state to track upload/mask progress
+  const [isUploading, setIsUploading] = useState(false);
+  // Add selectedFile state and update handleImageSelect to store the file
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [progress, setProgress] = useState(0);
+
 
   // Get current options based on selected view
   const currentOptions = selectedView === "front" ? RHINOPLASTY_FRONT_OPTIONS : RHINOPLASTY_SIDE_OPTIONS;
@@ -381,406 +87,357 @@ export default function GeneratePage() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedImage(file);
+      setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
       setError(null);
-      setShowMaskGenerator(false);
       setMaskImageUrl("");
       setOriginalImageUrl("");
     }
   };
 
-  const handleViewChange = (view: string) => {
-    setSelectedView(view);
-    // Reset to first option when view changes to avoid confusion
-    setSelectedOption("roman");
-  };
-
-  const handleUploadAndShowMask = async () => {
-    if (!selectedImage) return;
-
-    // Check file size (max 10MB)
-    if (selectedImage.size > 10 * 1024 * 1024) {
-      setError("Image file is too large. Please use an image under 10MB.");
-      return;
-    }
-
-    setIsLoading(true);
+  const handleMaskAndUpload = async () => {
     setError(null);
-
-    const uploadWithRetry = async (maxRetries = 3) => {
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          console.log(`Upload attempt ${attempt}/${maxRetries}`);
-          
-          const formData = new FormData();
-          formData.append("file", selectedImage);
-          
-          // Remove timeout - let the upload take as long as it needs
-          const uploadResponse = await fetch("/api/upload", {
-            method: "POST",
-            body: formData,
-          });
-          
-          if (!uploadResponse.ok) {
-            const errorData = await uploadResponse.json().catch(() => ({}));
-            throw new Error(errorData.error || `Upload failed (${uploadResponse.status}). Please try again.`);
-          }
-          
-          const { url: uploadedImageUrl } = await uploadResponse.json();
-          
-          if (!uploadedImageUrl) {
-            throw new Error("No image URL returned from upload");
-          }
-          
-          console.log("Upload successful:", uploadedImageUrl);
-          return uploadedImageUrl;
-          
-        } catch (error) {
-          console.error(`Upload attempt ${attempt} failed:`, error);
-          
-          if (error instanceof Error) {
-            // Only retry on network errors, not on timeout or other errors
-            if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('NetworkError')) {
-              if (attempt < maxRetries) {
-                console.log(`Network error, retrying in 3 seconds... (${attempt}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                continue;
-              } else {
-                throw new Error("Upload failed due to network issues after multiple attempts. Please check your connection and try again.");
-              }
-            } else {
-              // For other errors, don't retry - just throw
-              throw error;
-            }
-          } else {
-            throw new Error("Failed to upload image. Please try again.");
-          }
-        }
-      }
-    };
-
+    setIsUploading(true);
     try {
-      const uploadedImageUrl = await uploadWithRetry();
-      setOriginalImageUrl(uploadedImageUrl);
-      setShowMaskGenerator(true);
-
-    } catch (error) {
-      console.error("Final upload error:", error);
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Failed to upload image after multiple attempts. Please try again.");
+      if (!previewUrl) {
+        setError('No image selected.');
+        setIsUploading(false);
+        return;
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const optimizePrompt = async () => {
-    if (!customPrompt.trim()) {
-      setError("Please enter a prompt to optimize");
-      return;
-    }
-
-    setIsOptimizing(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/optimizePrompt", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt: customPrompt }),
+      // Find the file from the previewUrl (not possible), so store the file in state
+      // Instead, keep the file in a separate state variable
+      if (!selectedFile) {
+        setError('No image file found.');
+        setIsUploading(false);
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      const uploadResponse = await fetch('/api/upload-with-mask', {
+        method: 'POST',
+        body: formData,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to optimize prompt");
+      if (!uploadResponse.ok) {
+        throw new Error('Upload/mask generation failed');
       }
-
-      const { optimizedPrompt: optimized } = await response.json();
-      setOptimizedPrompt(optimized);
-      setCustomPrompt(optimized); // Update the custom prompt with optimized version
-    } catch (error) {
-      console.error("Error optimizing prompt:", error);
-      setError(error instanceof Error ? error.message : "Failed to optimize prompt");
+      const { originalUrl, maskUrl } = await uploadResponse.json();
+      setOriginalImageUrl(originalUrl);
+      setMaskImageUrl(maskUrl);
+    } catch (err) {
+      setError('Image upload or mask generation failed. Please try again.');
+      console.error('Upload/mask error:', err);
     } finally {
-      setIsOptimizing(false);
+      setIsUploading(false);
     }
   };
 
-  const resetPrompt = () => {
-    setOptimizedPrompt("");
-    setCustomPrompt("");
-    setError(null);
-  };
-
-  const handleMaskGenerated = (maskUrl: string) => {
-    setMaskImageUrl(maskUrl);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!originalImageUrl || !maskImageUrl) {
-      setError("Please upload an image and create a mask first");
-      return;
-    }
-
-    // Use custom prompt if selected, otherwise use preset prompt from current options
-    const finalPrompt = selectedOption === "custom" ? customPrompt : currentOptions[selectedOption as keyof typeof currentOptions].prompt;
-    
-    if (!finalPrompt) {
-      setError("Please provide a prompt");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setGeneratedImageUrl("");
-
-    try {
-      // Generate AI image using FLUX Fill API
-      const generateResponse = await fetch("/api/generateImage/v1/flux-fill-dev", {
+  useEffect(() => {
+    // When generatedImageUrl is set, store in DB in background
+    if (generatedImageUrl && originalImageUrl && !isStoring && !aiImageDbId) {
+      const storeImage = async () => {
+        setIsStoring(true);
+        try {
+          // Fetch userId from session or context if available
+          // For now, assume backend gets user from session
+          const res = await fetch("/api/store-generated-image", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+            headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          imageUrl: originalImageUrl,
-          prompt: finalPrompt,
-          maskImage: maskImageUrl,
-          numInferenceSteps: 28,
-          guidance: 85,
-          numOutputs: 1,
-          megapixels: "1",
-          outputFormat: "jpg",
-          outputQuality: 80,
+              imageUrl: generatedImageUrl,
+              originalImageUrl: originalImageUrl, // backend expects originalImageUrl
+              prompt: customPrompt || undefined,
         }),
       });
-
-      if (!generateResponse.ok) {
-        throw new Error("Failed to generate image");
+          const data = await res.json();
+          if (data.url && data.id) {
+            setAiImageCloudUrl(data.url);
+            setAiImageDbId(data.id);
       }
-      
-      const response = await generateResponse.json();
-      console.log("FLUX Fill API Response:", response);
-      console.log("Raw output from API:", response.output);
-
-      // Handle the actual FLUX Fill API response format
-      let extractedImageUrl = null;
-      
-      if (response.output && Array.isArray(response.output) && response.output.length > 0) {
-        extractedImageUrl = response.output[0];
-        console.log("Extracted image URL from output:", extractedImageUrl);
-        console.log("Type of extractedImageUrl:", typeof extractedImageUrl);
-      } else if (response.success && response.images && response.images.length > 0) {
-        extractedImageUrl = response.images[0];
-        console.log("Extracted image URL from wrapped format:", extractedImageUrl);
-        console.log("Type of extractedImageUrl:", typeof extractedImageUrl);
-      } else {
-        console.error("No valid image URL found in response:", response);
-        throw new Error(response.error || "Failed to generate image");
-      }
-
-      // Ensure extractedImageUrl is a valid string
-      if (!extractedImageUrl || typeof extractedImageUrl !== 'string' || extractedImageUrl.trim() === "") {
-        console.error("Invalid image URL:", extractedImageUrl);
-        throw new Error("Generated image URL is invalid or empty");
-      }
-
-      setGeneratedImageUrl(extractedImageUrl);
-      console.log("Set generatedImageUrl to:", extractedImageUrl);
-
-    } catch (error) {
-      console.error("Error:", error);
-      setError(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+        } catch {
+          // Optionally handle error
     } finally {
-      setIsLoading(false);
+          setIsStoring(false);
     }
   };
+      storeImage();
+    }
+  }, [generatedImageUrl, originalImageUrl, customPrompt, isStoring, aiImageDbId]);
+
+  // Progressive loader logic
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (isLoading) {
+      setProgress(0);
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev < 80) {
+            return prev + 1;
+          } else {
+            clearInterval(interval!);
+            return prev;
+          }
+        });
+      }, 40); // ~3.2s to reach 80%
+    } else if (!isLoading && progress >= 80 && progress < 100) {
+      // Animate the last 20% when loading finishes
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev < 100) {
+            return prev + 4;
+          } else {
+            clearInterval(interval!);
+            return 100;
+          }
+        });
+      }, 30);
+    } else if (!isLoading && progress < 80) {
+      setProgress(100);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isLoading, progress]);
 
   return (
-    <div className="relative min-h-screen min-w-screen bg-gradient-to-br from-[#0a2342] via-[#185a9d] to-[#43cea2] text-white py-8 px-2">
-      <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-12 text-white drop-shadow-xl tracking-tight">AI Rhinoplasty Simulator</h1>
-      <div className="max-w-3xl mx-auto space-y-10">
-        {/* Step 1: Upload Image */}
-        <div className="relative bg-white rounded-2xl shadow-2xl p-8 border border-blue-100">
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#43cea2] to-[#185a9d] text-white px-6 py-2 rounded-full shadow-lg font-bold text-lg z-10 border-4 border-blue-200">Step 1</div>
-          <div className="relative z-10 space-y-6 pt-6">
-            <h2 className="text-2xl font-bold text-center text-[#185a9d] mb-4">Upload Your Photo</h2>
-            <div>
-              <label className="block text-sm font-medium text-[#185a9d] mb-2">Choose Your Photo</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="w-full px-3 py-2 border border-blue-200 rounded-md bg-blue-50 text-[#0a2342] focus:outline-none focus:ring-2 focus:ring-[#43cea2] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#185a9d] file:text-white hover:file:bg-[#43cea2] "
-              />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+
+      {/* Stepper */}
+      <div className="flex flex-col items-center mb-8">
+        <h1 className="text-4xl font-extrabold text-[#181c2a] mt-8 mb-2">Generate Your Perfect Nose</h1>
+        <p className="text-lg text-[#4b5563] mb-6">Follow the steps below to visualize your ideal nose shape with AI technology</p>
+        <div className="flex items-center gap-8">
+          <div className={`flex flex-col items-center ${originalImageUrl ? 'text-[#7b5cff]' : 'text-gray-400'}`}>
+            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold">1</span>
+            <span className="mt-2 font-semibold">Upload</span>
+          </div>
+          <span className="w-12 h-1 bg-gray-200 rounded-full" />
+          <div className={`flex flex-col items-center ${originalImageUrl ? 'text-[#7b5cff]' : 'text-gray-400'}`}>
+            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold">2</span>
+            <span className="mt-2 font-semibold">Configure</span>
+          </div>
+          <span className="w-12 h-1 bg-gray-200 rounded-full" />
+          <div className={`flex flex-col items-center ${generatedImageUrl ? 'text-[#7b5cff]' : 'text-gray-400'}`}>
+            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold">3</span>
+            <span className="mt-2 font-semibold">Generate</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        {/* Step 1: Upload */}
+        <div className="mb-10">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div className="flex items-center mb-6">
+              <span className="bg-[#2563eb] text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">1</span>
+              <span className="text-xl font-bold text-[#181c2a]">Upload Your Photo</span>
             </div>
-            {previewUrl && (
-              <div className="space-y-4">
-                <div className="text-center text-[#185a9d] text-sm mb-4">Image selected successfully !!!</div>
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center bg-[#f5f8fc]">
+              {!previewUrl ? (
+                <>
+                  <label htmlFor="file-upload" className="flex flex-col items-center cursor-pointer">
+                    <span className="bg-gray-100 rounded-full p-4 mb-4">
+                      <svg width="36" height="36" fill="none" viewBox="0 0 36 36"><path d="M18 6v18M6 18h24" stroke="#7b5cff" strokeWidth="3" strokeLinecap="round"/></svg>
+                    </span>
+                    <span className="text-lg font-semibold text-[#181c2a] mb-2">Upload your photo</span>
+                    <span className="text-sm text-gray-500">PNG, JPG up to 10MB • Best results with clear front or side view</span>
+                    <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                  </label>
+                </>
+              ) : (
+                <div className="flex flex-col items-center w-full">
+                  <div className="bg-[#e9f0fb] border-2 border-dashed border-[#7b5cff] rounded-xl p-6 flex flex-col items-center w-full">
+                    <Image src={previewUrl} alt="Preview" width={220} height={280} className="rounded-lg object-contain" />
+                  </div>
+                  <span className="text-[#2563eb] font-semibold mt-4">Photo uploaded successfully!</span>
+                  <span className="text-sm text-gray-500 cursor-pointer mt-1" onClick={() => setPreviewUrl("")}>Click to change image</span>
+                </div>
+              )}
+              {previewUrl && !originalImageUrl && !maskImageUrl && (
                 <button
-                  onClick={handleUploadAndShowMask}
-                  disabled={isLoading}
-                  className={`w-full py-3 px-4 rounded-md text-white font-semibold transition-colors ${isLoading ? 'bg-blue-400/60 cursor-not-allowed' : 'bg-gradient-to-r from-[#43cea2] to-[#185a9d] hover:from-[#185a9d] hover:to-[#43cea2]'}`}
+                  className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition-colors"
+                  onClick={handleMaskAndUpload}
+                  disabled={isUploading}
                 >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Uploading...
-                    </div>
-                  ) : (
-                    "Upload & Continue to Mask Creation"
-                  )}
+                  {isUploading ? 'Processing...' : 'Generate Mask and Upload'}
                 </button>
-              </div>
-            )}
+              )}
+              {error && <div className="text-red-500 text-sm mt-3">{error}</div>}
+            </div>
           </div>
         </div>
 
-        {/* Step 2: Create Mask */}
-        {showMaskGenerator && originalImageUrl && (
-          <div className="relative bg-white rounded-2xl shadow-2xl p-8 border border-blue-100">
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#43cea2] to-[#185a9d] text-white px-6 py-2 rounded-full shadow-lg font-bold text-lg z-10 border-4 border-blue-200">Step 2</div>
-            <div className="relative z-10 pt-6">
-              <MaskGenerator uploadedImageUrl={originalImageUrl} onMaskGenerated={handleMaskGenerated} />
+        {/* Step 2: Configure - Only show if both originalImageUrl and maskImageUrl are set */}
+        {originalImageUrl && maskImageUrl ? (
+          <div className="mb-10">
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+              <div className="flex items-center mb-6">
+                <span className="bg-[#2563eb] text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">2</span>
+                <span className="text-xl font-bold text-[#181c2a]">Configure Your Preferences</span>
             </div>
+              <div className="mb-6">
+                <span className="block font-semibold text-[#181c2a] mb-2">Select Photo View</span>
+                <div className="flex gap-4 mb-4">
+                  <label className={`flex-1 border rounded-lg px-4 py-3 cursor-pointer ${selectedView === 'front' ? 'border-[#7b5cff] bg-[#f5f8fc]' : 'border-gray-200 bg-white'}`}>
+                    <input type="radio" value="front" checked={selectedView === "front"} onChange={() => setSelectedView('front')} className="hidden" />
+                    <div className="flex flex-col items-start">
+                      <span className="text-lg font-semibold text-[#181c2a]">Front View</span>
+                      <span className="text-xs text-gray-500">Best for frontal nose shape, symmetry and modifications</span>
           </div>
-        )}
-
-        {/* Step 3: Configure & Generate */}
-        {maskImageUrl && (
-          <div className="relative bg-white rounded-2xl shadow-2xl p-8 border border-blue-100">
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#43cea2] to-[#185a9d] text-white px-6 py-2 rounded-full shadow-lg font-bold text-lg z-10 border-4 border-blue-200">Step 3</div>
-            <form onSubmit={handleSubmit} className="space-y-6 relative z-10 pt-6">
-              <h2 className="text-2xl font-bold text-center text-[#185a9d] mb-4">Configure & Generate</h2>
-              <div>
-                <label className="block text-sm font-medium text-[#185a9d] mb-2">Select View Angle</label>
-                <div className="flex space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      value="front"
-                      checked={selectedView === "front"}
-                      onChange={() => handleViewChange("front")}
-                      className="mr-2 text-blue-400 focus:ring-blue-400"
-                    />
-                    <span className="text-zinc-700 font-semibold text-sm">Front View</span>
                   </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      value="side"
-                      checked={selectedView === "side"}
-                      onChange={() => handleViewChange("side")}
-                      className="mr-2 text-blue-400 focus:ring-blue-400"
-                    />
-                    <span className="text-zinc-700 font-semibold text-sm">Side View</span>
+                  <label className={`flex-1 border rounded-lg px-4 py-3 cursor-pointer ${selectedView === 'side' ? 'border-[#7b5cff] bg-[#f5f8fc]' : 'border-gray-200 bg-white'}`}>
+                    <input type="radio" value="side" checked={selectedView === "side"} onChange={() => setSelectedView('side')} className="hidden" />
+                    <div className="flex flex-col items-start">
+                      <span className="text-lg font-semibold text-[#181c2a]">Side View</span>
+                      <span className="text-xs text-gray-500">Best for nose shape, symmetry and modifications</span>
+                    </div>
                   </label>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#185a9d] mb-2">Select Nose Type</label>
-                <div className="relative dropdown-container">
-                  <select
-                    value={selectedOption}
-                    onChange={(e) => setSelectedOption(e.target.value)}
-                    className="w-full px-3 py-2 border border-blue-400/30 rounded-md bg-blue-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-                      backgroundPosition: 'right 0.5rem center',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundSize: '1.5em 1.5em',
-                      paddingRight: '2.5rem'
-                    }}
-                  >
+                <label className="block text-sm font-medium text-[#181c2a] mb-2">Choose Your Ideal Nose Type</label>
+                <div className="space-y-3">
                     {Object.entries(currentOptions).map(([key, value]) => (
-                      <option key={key} value={key}>{value.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              {selectedOption === "custom" && (
-                <div>
-                  <label className="block text-sm font-medium text-[#185a9d] mb-2">Please describe how you want your nose to look (mention the view: FRONT or SIDE)</label>
-                  <div className="space-y-3">
+                    <label key={key} className={`flex items-start border rounded-lg px-4 py-3 cursor-pointer transition-colors ${selectedOption === key ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
+                      <input
+                        type="radio"
+                        value={key}
+                        checked={selectedOption === key}
+                        onChange={() => setSelectedOption(key)}
+                        className="mt-1 mr-3"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-[#181c2a]">
+                          {value.label.replace(/\(.*\)/, '')}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {key === 'straight' && 'Classic straight bridge'}
+                          {key === 'button' && ''}
+                          {key === 'roman' && ''}
+                          {key === 'upturned' && 'Slightly upward tip'}
+                          {key === 'refined' && 'Elegant and narrow'}
+                          {key === 'custom' && 'Custom Description'}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                  {selectedOption === 'custom' && (
+                    <div className="mt-2 w-full">
                     <textarea
                       value={customPrompt}
                       onChange={(e) => setCustomPrompt(e.target.value)}
-                      placeholder="Describe how you want your nose to look..."
-                      className="w-full px-3 py-2 border border-blue-400/30 rounded-md bg-blue-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      rows={4}
-                    />
-                    <div className="flex space-x-2">
-                      <button
-                        type="button"
-                        onClick={optimizePrompt}
-                        disabled={!customPrompt.trim() || isOptimizing}
-                        className={`flex-1 py-2 px-4 rounded-md text-white font-semibold transition-colors ${!customPrompt.trim() || isOptimizing ? 'bg-blue-500/60 cursor-not-allowed' : 'bg-[#185a9d] text-white hover:bg-[#43cea2]'}`}
-                      >
-                        {isOptimizing ? (
-                          <div className="flex items-center justify-center">
-                            <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            Optimizing...
-                          </div>
-                        ) : (
-                          "✨ Optimize Prompt"
-                        )}
-                      </button>
-                      {(customPrompt || optimizedPrompt) && (
-                        <button
-                          type="button"
-                          onClick={resetPrompt}
-                          className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-md transition-colors"
-                          title="Clear prompt"
-                        >
-                          CLEAR
-                        </button>
-                      )}
-                    </div>
-                    {optimizedPrompt && (
-                      <div className="text-sm text-center text-green-400 bg-blue-900 p-3 rounded-md border border-green-700">
-                        <strong>Optimized:</strong> Your prompt has been enhanced for better results!
+                        placeholder="Describe your ideal nose shape in detail... (e.g., 'slightly smaller, more refined tip, straighter bridge')"
+                        className="w-full px-3 py-2 border border-blue-200 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        rows={3}
+                      />
                       </div>
                     )}
                   </div>
                 </div>
-              )}
               {error && (
                 <div className="text-red-400 text-sm mt-2">{error}</div>
               )}
               <button
-                type="submit"
-                disabled={!originalImageUrl || !maskImageUrl || (selectedOption === "custom" && !customPrompt) || isLoading}
-                className={`w-full py-3 px-4 rounded-md text-white font-semibold transition-colors ${!originalImageUrl || !maskImageUrl || (selectedOption === "custom" && !customPrompt) || isLoading ? 'bg-blue-500/60 cursor-not-allowed' : 'bg-gradient-to-r from-[#43cea2] to-[#185a9d] hover:from-[#185a9d] hover:to-[#43cea2]'}`}
+                type="button"
+                disabled={isLoading || (selectedOption === 'custom' && !customPrompt)}
+                className={`w-full mt-6 py-3 px-4 rounded-md text-white font-semibold transition-colors ${isLoading || (selectedOption === 'custom' && !customPrompt) ? 'bg-blue-500/60 cursor-not-allowed' : 'bg-gradient-to-r from-[#43cea2] to-[#185a9d] hover:from-[#185a9d] hover:to-[#43cea2]'}`}
+                onClick={async () => {
+                  setError(null);
+                  const finalPrompt = selectedOption === 'custom' ? customPrompt : currentOptions[selectedOption as keyof typeof currentOptions].prompt;
+                  console.log('originalImageUrl:', originalImageUrl);
+                  console.log('maskImageUrl:', maskImageUrl);
+                  console.log('finalPrompt:', finalPrompt);
+                  if (!originalImageUrl || !maskImageUrl || !finalPrompt) {
+                    setError('Missing required data: Please upload an image and ensure all fields are filled.');
+                    console.error('Missing required data:', { originalImageUrl, maskImageUrl, finalPrompt });
+                    return;
+                  }
+                  // Generate AI image
+                  try {
+                    setIsLoading(true);
+                    const generateResponse = await fetch('/api/generateImage/v1/flux-fill-dev', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        imageUrl: originalImageUrl,
+                        prompt: finalPrompt,
+                        maskImage: maskImageUrl,
+                        numInferenceSteps: 28,
+                        guidance: 85,
+                        numOutputs: 1,
+                        megapixels: '1',
+                        outputFormat: 'jpg',
+                        outputQuality: 80,
+                      }),
+                    });
+                    if (!generateResponse.ok) throw new Error('Failed to generate image');
+                    const response = await generateResponse.json();
+                    let extractedImageUrl = null;
+                    if (response.output && Array.isArray(response.output) && response.output.length > 0) {
+                      extractedImageUrl = response.output[0];
+                    } else if (response.success && response.images && response.images.length > 0) {
+                      extractedImageUrl = response.images[0];
+                    }
+                    if (!extractedImageUrl) throw new Error('No image returned');
+                    setGeneratedImageUrl(extractedImageUrl);
+                  } catch (err) {
+                    setError('AI generation failed.');
+                    console.error('AI generation error:', err);
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating Simulation...
+                    Generating...
                   </div>
                 ) : (
-                  "Generate Simulation"
+                  'Generate Simulation'
                 )}
               </button>
-              {generatedImageUrl && !isLoading && (
-                <div className="mt-4 p-4 bg-gradient-to-r from-[#43cea2] to-[#185a9d] hover:from-[#185a9d] hover:to-[#43cea2] rounded-lg border border-green-700">
-                  <div className="text-center ">
-                    <p className="text-white font-semibold text-lg"> Generation Complete!</p>
-                    <p className="text-zinc-200 mt-2">Your rhinoplasty simulation is ready. <span className="font-medium"> Scroll down to see your results!</span></p>
-                    <div className="mt-2 text-green-300 animate-bounce">↓ ↓ ↓</div>
-                  </div>
+            </div>
+          </div>
+        ) : (
+          previewUrl && (
+            <div className="text-center text-blue-500 py-8">
+              Processing image, please wait...
+            </div>
+          )
+        )}
+
+        {/* Loader below Step 2 while generating */}
+        {isLoading && (
+          <div className="mb-10">
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 flex flex-col items-center">
+              <div className="flex items-center mb-4">
+                <span className="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">3</span>
+                <span className="text-xl font-bold text-[#181c2a] flex items-center"><Sparkles className="w-5 h-5 mr-2 text-blue-500" /> Generate Your Result</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-4 mb-4">
+                  <Sparkles className="w-8 h-8 text-white" />
                 </div>
-              )}
-            </form>
+                <div className="text-xl font-semibold mb-2">AI is working its magic...</div>
+                <div className="text-gray-500 mb-4">Analyzing your photo and generating your perfect nose shape</div>
+                <div className="w-full max-w-md">
+                  <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                  </div>
+                  <div className="text-center text-gray-500 text-sm mt-2">{Math.min(progress, 100)}% complete</div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
-        {/* Results (consistent style) */}
-        {maskImageUrl && (isLoading || generatedImageUrl) && (
-          <div className="relative bg-white rounded-2xl shadow-2xl p-8 border border-blue-100 mt-8">
-            <h2 className="text-2xl font-bold text-center mb-8 text-[#185a9d] tracking-wide">Results</h2>
+
+        {/* Step 3: Results - Only show if output is generated */}
+        {generatedImageUrl && !isLoading && (
+          <div className="bg-white rounded-2xl shadow-2xl p-8 border border-blue-100">
+            <div className="flex items-center mb-6">
+              <span className="bg-[#2563eb] text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">3</span>
+              <span className="text-xl font-bold text-[#181c2a]">Results</span>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Original Photo Card */}
               <div className="bg-blue-50 rounded-xl shadow-lg p-4 border-2 border-blue-100 flex flex-col items-center">
@@ -801,13 +458,6 @@ export default function GeneratePage() {
               <div className="bg-blue-50 rounded-xl shadow-lg p-4 border-2 border-blue-100 flex flex-col items-center">
                 <h3 className="text-lg font-semibold mb-4 text-[#185a9d]">Simulated Outcome</h3>
                 <div className="rounded-xl overflow-hidden border border-blue-200 bg-white flex items-center justify-center w-full h-80 relative">
-                  {isLoading ? (
-                    <div className="flex flex-col items-center justify-center w-full h-full">
-                      <div className="w-12 h-12 mx-auto mb-4 border-4 border-[#185a9d] border-t-transparent rounded-full animate-spin"></div>
-                      <p className="text-[#185a9d]">Generating your simulation...</p>
-                    </div>
-                  ) : (
-                    generatedImageUrl && generatedImageUrl.trim() !== "" && (
                       <Image
                         src={generatedImageUrl}
                         alt="Generated"
@@ -815,11 +465,34 @@ export default function GeneratePage() {
                         className="object-contain"
                         unoptimized
                       />
-                    )
-                  )}
                 </div>
               </div>
             </div>
+            {aiImageCloudUrl && (
+              <div className="mt-6 text-center">
+                <button
+                  className="inline-block px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-colors"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(aiImageCloudUrl);
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = 'ai-image.jpg';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      window.URL.revokeObjectURL(url);
+                    } catch (error) {
+                      console.error('Download failed:', error);
+                    }
+                  }}
+                >
+                  Download AI Image
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

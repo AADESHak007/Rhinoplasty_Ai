@@ -17,9 +17,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { imageUrl, originalImageId, prompt } = await req.json();
+    const { imageUrl, originalImageUrl, prompt } = await req.json();
 
-    if (!imageUrl || !originalImageId) {
+    if (!imageUrl || !originalImageUrl) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -35,6 +35,15 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Find the original image by URL
+    const originalImage = await prisma.images.findFirst({
+      where: { url: originalImageUrl },
+      select: { id: true }
+    });
+    if (!originalImage) {
+      return NextResponse.json({ error: "Original image not found" }, { status: 404 });
     }
 
     try {
@@ -76,9 +85,15 @@ export async function POST(req: NextRequest) {
         data: {
           imageUrl: uploadRes.secure_url,
           userId: user.id,
-          originalImageId: originalImageId,
+          originalImageId: originalImage.id,
           description: prompt,
         },
+      });
+
+      // Increment user's aiGenerationCount
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { aiGenerationCount: { increment: 1 } },
       });
 
       console.log("Stored in database:", generatedImage);

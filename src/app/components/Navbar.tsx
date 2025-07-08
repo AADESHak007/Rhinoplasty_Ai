@@ -1,86 +1,53 @@
 "use client"
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import React from 'react'
-import { signOut, useSession } from 'next-auth/react'
-import Logo from '../../../public/rhinoplasty-ai-updated.png'
-import Image from 'next/image'
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
-const Navbar = () => {
-  const pathname = usePathname()
-  const { data: session, status } = useSession()
+const navLinks = [
+  { name: 'Home', href: '/' },
+  { name: 'Generate', href: '/generate' },
+  { name: 'History', href: '/history' },
+];
 
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/generate', label: 'Generate' },
-    // { href: '/uploadImage', label: 'Upload Image' },
-  ]
-
+export default function Navbar() {
+  const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const userName = session?.user?.name || session?.user?.email || '';
   return (
-    <nav className="w-full top-0 left-0 z-50 sticky bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 bg-opacity-95 shadow-lg border-b border-blue-400/30 backdrop-blur-md px-8 py-0 flex items-center justify-between h-20">
-      {/* Logo */}
-      <Link href="/" className="flex items-center space-x-4 hover:opacity-90 transition-opacity h-full">
-        <div className="relative flex items-center h-full">
-          <Image 
-            src={Logo} 
-            alt="RhinoPlasty AI Logo" 
-            width={56} 
-            height={56} 
-            className="object-contain rounded-full border-2 border-blue-300 shadow-md bg-white h-14 w-14"
-            priority
-          />
+    <nav className="sticky top-0 z-50 bg-white shadow-sm w-full">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+        <Link href="/" className="flex items-center gap-2 group">
+          <Image src="/rhinoplasty-ai-logo.png" alt="logo" width={36} height={36} className="rounded-lg" />
+          <span className="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:opacity-80 transition">RHINOPLASTY-AI</span>
+        </Link>
+        <div className="flex-1 flex justify-center gap-8">
+          {navLinks.map(link => (
+            <Link key={link.href} href={link.href} className={`font-medium px-2 py-1 rounded transition-colors ${pathname === link.href ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600' : 'text-gray-700 hover:text-blue-600'}`}>{link.name}</Link>
+          ))}
         </div>
-        <span className="text-2xl md:text-3xl font-extrabold text-blue-100 tracking-wide whitespace-nowrap">
-          RHINOPLASTY-AI
-        </span>
-      </Link>
-
-      {/* Navigation Links */}
-      <ul className="hidden md:flex space-x-8 items-center">
-        {navLinks.map((link) => (
-          <li key={link.href}>
-            <Link
-              href={link.href}
-              className={`transition-colors text-lg px-3 py-1 rounded-md font-semibold ${
-                pathname === link.href
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                  : 'text-blue-100 hover:bg-blue-700/60 hover:text-white'
-              }`}
+        <div className="flex items-center gap-4">
+          {status === 'loading' ? null : session ? (
+            <>
+              <span className="hidden md:inline text-gray-700 font-semibold">Welcome, {userName}</span>
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="px-5 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow hover:from-blue-700 hover:to-purple-700 transition"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => signIn()}
+              className="px-5 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow hover:from-blue-700 hover:to-purple-700 transition"
             >
-              {link.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      {/* Authentication Section */}
-      <div className="flex items-center space-x-2 md:space-x-4 text-white">
-        {status === "loading" ? (
-          <div className="text-blue-200 text-sm">Loading...</div>
-        ) : session ? (
-          <>
-            {/* User Info - Hidden on mobile */}
-            <div className="hidden lg:block text-white text-sm font-semibold">
-              Welcome, <span className="text-white text-lg font-semibold">{session.user?.name || session.user?.email}</span>
-            </div>
-            {/* Logout Button */}
-            <button 
-              onClick={() => signOut({ callbackUrl: '/' })} 
-              className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white py-2 px-4 rounded-md transition-colors font-semibold text-sm shadow-md border border-red-400/40"
-            >
-              Logout
+              Login
             </button>
-          </>
-        ) : (
-          /* Login Link */
-          <Link href="/auth/signin" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-2 px-4 rounded-md transition-colors font-semibold text-sm shadow-md border border-purple-400/40">
-            Login
-          </Link>
-        )}
+          )}
+        </div>
       </div>
     </nav>
-  )
+  );
 }
-
-export default Navbar

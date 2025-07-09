@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const maskFormData = new FormData();
     maskFormData.append('file', file);
     
-    const maskResponse = await fetch("/api/mask-image", {
+    const maskResponse = await fetch("https://rhinoplasty-ai-iota.vercel.app/api/mask-image", {
       method: 'POST',
       body: maskFormData,
     });

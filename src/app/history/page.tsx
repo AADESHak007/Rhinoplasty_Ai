@@ -106,17 +106,17 @@ export default function HistoryPage() {
                     />
                   </div>
                 </div>
-                {generation.description && (
+                {/* {generation.description && (
                   <div className="px-6 pb-4">
                     <div className="mt-2 p-3 bg-gray-50 rounded-lg">
                       <p className="text-sm font-medium text-gray-700 mb-1">Description:</p>
                       <p className="text-sm text-gray-600">{generation.description}</p>
                     </div>
                   </div>
-                )}
+                )} */}
                 <div className="flex gap-2 px-6 pb-6">
                   <button
-                    className="flex-1 bg-transparent border rounded-lg py-2 flex items-center justify-center gap-2 hover:bg-blue-50"
+                    className="flex-1 border rounded-lg py-2 flex items-center bg-blue-500 justify-center gap-2 "
                     onClick={async () => {
                       const response = await fetch(generation.originalImageUrl);
                       const blob = await response.blob();
@@ -133,7 +133,7 @@ export default function HistoryPage() {
                     Download Original
                   </button>
                   <button
-                    className="flex-1 bg-transparent border rounded-lg py-2 flex items-center justify-center gap-2 hover:bg-blue-50"
+                    className="flex-1 bg-green-500 border rounded-lg py-2 flex items-center justify-center gap-2 "
                     onClick={async () => {
                       const response = await fetch(generation.aiImageUrl);
                       const blob = await response.blob();

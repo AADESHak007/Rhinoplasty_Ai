@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import cloudinary from "@/lib/cloudinary";
-import { spawn } from "child_process";
-import fs from "fs";
-import path from "path";
 import type { UploadApiResponse } from "cloudinary";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth/next";
@@ -18,34 +15,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Use system temp directory (cross-platform)
-    const tempDir = process.env.TEMP || process.env.TMP || "/tmp";
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    const inputPath = path.join(tempDir, `input_${Date.now()}.png`);
-    const maskPath = path.join(tempDir, `mask_${Date.now()}.png`);
-
-    // Save uploaded file to a temp location
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    fs.writeFileSync(inputPath, buffer);
-
-    // Call Python script to generate mask
-    await new Promise((resolve, reject) => {
-      const py = spawn("python", [
-        path.join(process.cwd(), "mask_nose.py"),
-        inputPath,
-        maskPath
-      ]);
-      py.on("close", (code) => {
-        if (code === 0) resolve(0);
-        else reject(new Error("Python mask generation failed"));
-      });
-      py.on("error", reject);
+    // 1. Generate mask using the /api/mask-image route with FormData
+    const maskFormData = new FormData();
+    maskFormData.append('file', file);
+    
+    const maskRequest = new Request('http://localhost:3000/api/mask-image', {
+      method: 'POST',
+      body: maskFormData,
     });
+    
+    const maskResponse = await fetch(maskRequest);
+    if (!maskResponse.ok) {
+      throw new Error('Mask generation failed');
+    }
+    
+    const maskData = await maskResponse.json();
+    const maskImageUrl = maskData.maskUrl;
+    if (!maskImageUrl) {
+      throw new Error('No mask returned from mask generation');
+    }
 
-    // Upload original image to Cloudinary
+    // 2. Upload original image to Cloudinary
     const uploadOriginal = await new Promise<UploadApiResponse>((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { folder: "rhinoplasty", resource_type: "image" },
@@ -54,10 +44,21 @@ export async function POST(req: NextRequest) {
           else resolve(result as UploadApiResponse);
         }
       );
-      fs.createReadStream(inputPath).pipe(stream);
+      
+      // Convert File to Buffer for cloudinary
+      file.arrayBuffer().then(buffer => {
+        stream.end(Buffer.from(buffer));
+      }).catch(reject);
     });
 
-    // Upload mask image to Cloudinary
+    // 3. Upload mask image to Cloudinary (fetch from URL)
+    const maskResponse2 = await fetch(maskImageUrl);
+    if (!maskResponse2.ok) {
+      throw new Error('Failed to fetch mask image from URL');
+    }
+    
+    const maskBuffer = Buffer.from(await maskResponse2.arrayBuffer());
+    
     const uploadMask = await new Promise<UploadApiResponse>((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { folder: "rhinoplasty", resource_type: "image" },
@@ -66,14 +67,10 @@ export async function POST(req: NextRequest) {
           else resolve(result as UploadApiResponse);
         }
       );
-      fs.createReadStream(maskPath).pipe(stream);
+      stream.end(maskBuffer);
     });
 
-    // Clean up temp files
-    fs.unlinkSync(inputPath);
-    fs.unlinkSync(maskPath);
-
-    // Store original image in DB
+    // 4. Store original image in DB
     //@ts-expect-error NextAuth v4 compatibility issue with App Router types
     const session = await getServerSession(authOptions);
     let imageDbId = null;

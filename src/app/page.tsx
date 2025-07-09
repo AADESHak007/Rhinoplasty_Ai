@@ -29,21 +29,23 @@ export default function Home() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border border-gray-100">
             <span className="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-[#7b5cff] to-[#6ee7b7] mb-4">
-              <svg width="32" height="32" fill="none" viewBox="0 0 32 32"><path d="M16 4v24M4 16h24" stroke="#fff" strokeWidth="3" strokeLinecap="round"/></svg>
+              {/* <svg width="32" height="32" fill="none" viewBox="0 0 32 32"><path d="M16 4v24M4 16h24" stroke="#fff" strokeWidth="3" strokeLinecap="round"/></svg> */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-image-up-icon lucide-image-up"><path d="M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10l-3.1-3.1a2 2 0 0 0-2.814.014L6 21"/><path d="m14 19.5 3-3 3 3"/><path d="M17 22v-5.5"/><circle cx="9" cy="9" r="2"/></svg>
             </span>
             <h3 className="text-xl font-bold mb-2 text-[#181c2a]">Instant Results</h3>
             <p className="text-[#4b5563] text-center">Get realistic rhinoplasty previews in seconds with our advanced AI processing technology.</p>
           </div>
           <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border border-gray-100">
             <span className="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-[#7b5cff] to-[#6ee7b7] mb-4">
-              <svg width="32" height="32" fill="none" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" stroke="#fff" strokeWidth="3"/><path d="M16 10v6l4 2" stroke="#fff" strokeWidth="3" strokeLinecap="round"/></svg>
+              {/* <svg width="32" height="32" fill="none" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" stroke="#fff" strokeWidth="3"/><path d="M16 10v6l4 2" stroke="#fff" strokeWidth="3" strokeLinecap="round"/></svg> */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-globe-lock-icon lucide-globe-lock"><path d="M15.686 15A14.5 14.5 0 0 1 12 22a14.5 14.5 0 0 1 0-20 10 10 0 1 0 9.542 13"/><path d="M2 12h8.5"/><path d="M20 6V4a2 2 0 1 0-4 0v2"/><rect width="8" height="5" x="14" y="6" rx="1"/></svg>
             </span>
             <h3 className="text-xl font-bold mb-2 text-[#181c2a]">Secure & Private</h3>
             <p className="text-[#4b5563] text-center">Your photos are processed securely and never stored permanently. Complete privacy guaranteed.</p>
           </div>
           <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border border-gray-100">
             <span className="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-[#7b5cff] to-[#6ee7b7] mb-4">
-              <svg width="32" height="32" fill="none" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" stroke="#fff" strokeWidth="3"/><path d="M16 10v6l4 2" stroke="#fff" strokeWidth="3" strokeLinecap="round"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-pen-line-icon lucide-pen-line"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
             </span>
             <h3 className="text-xl font-bold mb-2 text-[#181c2a]">Expert Approved</h3>
             <p className="text-[#4b5563] text-center">Developed in collaboration with leading plastic surgeons for medically accurate results.</p>

@@ -6,6 +6,17 @@ import { useEffect } from 'react';
 
 import { Sparkles } from 'lucide-react';
 
+// Add glitter animation CSS
+const glitterStyle = `
+@keyframes glitter {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 6px #a78bfa); }
+  50% { opacity: 0.5; filter: drop-shadow(0 0 16px #a78bfa); }
+}
+.glitter-star {
+  animation: glitter 1.2s infinite;
+}
+`;
+
 // Predefined nose type prompts
 const RHINOPLASTY_FRONT_OPTIONS = {
   roman: {
@@ -71,7 +82,8 @@ export default function GeneratePage() {
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const [maskImageUrl, setMaskImageUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [aiImageDbId, setAiImageDbId] = useState<string>("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [aiImageDbId, setAiImageDbId] = useState<string>(""); // Used for state management
   const [aiImageCloudUrl, setAiImageCloudUrl] = useState<string>("");
   const [isStoring, setIsStoring] = useState(false);
   // Add new state to track upload/mask progress
@@ -79,6 +91,7 @@ export default function GeneratePage() {
   // Add selectedFile state and update handleImageSelect to store the file
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
+  const [authFailed, setAuthFailed] = useState(false);
 
 
   // Get current options based on selected view
@@ -92,6 +105,7 @@ export default function GeneratePage() {
       setError(null);
       setMaskImageUrl("");
       setOriginalImageUrl("");
+      setAuthFailed(false); // Reset auth failed flag for new image
     }
   };
 
@@ -111,6 +125,8 @@ export default function GeneratePage() {
         setIsUploading(false);
         return;
       }
+
+      // Use the updated /api/upload-with-mask route that handles everything server-side
       const formData = new FormData();
       formData.append('file', selectedFile);
       const uploadResponse = await fetch('/api/upload-with-mask', {
@@ -131,68 +147,89 @@ export default function GeneratePage() {
     }
   };
 
-  useEffect(() => {
-    // When generatedImageUrl is set, store in DB in background
-    if (generatedImageUrl && originalImageUrl && !isStoring && !aiImageDbId) {
-      const storeImage = async () => {
-        setIsStoring(true);
-        try {
-          // Fetch userId from session or context if available
-          // For now, assume backend gets user from session
-          const res = await fetch("/api/store-generated-image", {
+  // Store generated image when it's created
+  const storeGeneratedImage = async (imageUrl: string, originalUrl: string, prompt?: string) => {
+    if (isStoring || authFailed) return; // Prevent multiple calls
+    
+    setIsStoring(true);
+    try {
+      const res = await fetch("/api/store-generated-image", {
         method: "POST",
-            headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-              imageUrl: generatedImageUrl,
-              originalImageUrl: originalImageUrl, // backend expects originalImageUrl
-              prompt: customPrompt || undefined,
+          imageUrl: imageUrl,
+          originalImageUrl: originalUrl,
+          prompt: prompt,
         }),
       });
-          const data = await res.json();
-          if (data.url && data.id) {
-            setAiImageCloudUrl(data.url);
-            setAiImageDbId(data.id);
+      
+      const data = await res.json();
+      
+      if (res.status === 401) {
+        console.log("User not authenticated, skipping image storage");
+        setAuthFailed(true);
+        return;
       }
-        } catch {
-          // Optionally handle error
+      
+      if (res.status === 200 && data.status === "success" && data.url && data.id) {
+        setAiImageCloudUrl(data.url);
+        setAiImageDbId(data.id);
+        console.log("Image stored successfully:", data.id);
+      } else if (data.status === "success" && data.message === "Image already processed") {
+        setAiImageCloudUrl(data.url);
+        setAiImageDbId(data.id);
+        console.log("Image already processed:", data.id);
+      } else {
+        console.warn("Unexpected response from store-generated-image:", data);
+      }
+    } catch (error) {
+      console.error("Error storing generated image:", error);
     } finally {
-          setIsStoring(false);
+      setIsStoring(false);
     }
   };
-      storeImage();
-    }
-  }, [generatedImageUrl, originalImageUrl, customPrompt, isStoring, aiImageDbId]);
 
   // Progressive loader logic
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
+    
     if (isLoading) {
+      // Reset progress when starting
       setProgress(0);
+      let localProgress = 0;
+      
       interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev < 80) {
-            return prev + 1;
-          } else {
-            clearInterval(interval!);
-            return prev;
-          }
-        });
-      }, 40); // ~3.2s to reach 80%
-    } else if (!isLoading && progress >= 80 && progress < 100) {
-      // Animate the last 20% when loading finishes
+        // Slower, more gradual progress to 80%
+        localProgress += Math.random() * 1.5 + 0.5; // 0.5 to 2.0 increment
+        if (localProgress < 80) {
+          setProgress(Math.floor(localProgress));
+        } else {
+          setProgress(80);
+          clearInterval(interval!);
+        }
+      }, 100); // Slower updates for smoother feel
+      
+    } else if (!isLoading && progress > 0) {
+      // When loading is complete, progress from current to 100%
+      let localProgress = progress;
+      
       interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev < 100) {
-            return prev + 4;
-          } else {
-            clearInterval(interval!);
-            return 100;
-          }
-        });
-      }, 30);
-    } else if (!isLoading && progress < 80) {
-      setProgress(100);
+        // 5% increments from current progress to 100%
+        localProgress += 5;
+        if (localProgress < 100) {
+          setProgress(localProgress);
+        } else {
+          setProgress(100);
+          clearInterval(interval!);
+          
+          // Reset progress after a delay for next generation
+          setTimeout(() => {
+            setProgress(0);
+          }, 2000);
+        }
+      }, 200); // Slower increments for better UX
     }
+    
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -262,7 +299,7 @@ export default function GeneratePage() {
                 </button>
               )}
               {error && <div className="text-red-500 text-sm mt-3">{error}</div>}
-            </div>
+              </div>
           </div>
         </div>
 
@@ -379,6 +416,9 @@ export default function GeneratePage() {
                     }
                     if (!extractedImageUrl) throw new Error('No image returned');
                     setGeneratedImageUrl(extractedImageUrl);
+                    
+                    // Store the generated image in Cloudinary and DB
+                    await storeGeneratedImage(extractedImageUrl, originalImageUrl, finalPrompt);
                   } catch (err) {
                     setError('AI generation failed.');
                     console.error('AI generation error:', err);
@@ -401,34 +441,30 @@ export default function GeneratePage() {
         ) : (
           previewUrl && (
             <div className="text-center text-blue-500 py-8">
-              Processing image, please wait...
             </div>
           )
         )}
 
         {/* Loader below Step 2 while generating */}
         {isLoading && (
-          <div className="mb-10">
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 flex flex-col items-center">
-              <div className="flex items-center mb-4">
-                <span className="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">3</span>
-                <span className="text-xl font-bold text-[#181c2a] flex items-center"><Sparkles className="w-5 h-5 mr-2 text-blue-500" /> Generate Your Result</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-4 mb-4">
-                  <Sparkles className="w-8 h-8 text-white" />
+          <>
+            <style>{glitterStyle}</style>
+            <div className="mb-10">
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 flex flex-col items-center">
+                <div className="flex items-center mb-4">
+                  <span className="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">3</span>
+                  <span className="text-xl font-bold text-[#181c2a] flex items-center"><Sparkles className="w-5 h-5 mr-2 text-blue-500" /> Generate Your Result</span>
                 </div>
-                <div className="text-xl font-semibold mb-2">AI is working its magic...</div>
-                <div className="text-gray-500 mb-4">Analyzing your photo and generating your perfect nose shape</div>
-                <div className="w-full max-w-md">
-                  <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                <div className="flex flex-col items-center">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-4 mb-4">
+                    <Sparkles className="w-8 h-8 text-white glitter-star" />
                   </div>
-                  <div className="text-center text-gray-500 text-sm mt-2">{Math.min(progress, 100)}% complete</div>
+                  <div className="text-xl font-semibold mb-2">AI is working its magic...</div>
+                  <div className="text-gray-500 mb-4">Analyzing your photo and generating your perfect nose shape</div>
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Step 3: Results - Only show if output is generated */}

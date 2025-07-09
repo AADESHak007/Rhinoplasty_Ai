@@ -9,24 +9,42 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
-    
     //@ts-expect-error NextAuth v4 compatibility issue with App Router types
-    
     const session = await getServerSession(authOptions);
+    
+    // Early return if no session - don't log this as an error
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ 
+        status: "unauthorized",
+        message: "User not authenticated" 
+      }, { status: 401 });
     }
 
     const { imageUrl, originalImageUrl, prompt } = await req.json();
 
+    // Validate required fields
     if (!imageUrl || !originalImageUrl) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { 
+          status: "error",
+          message: "Missing required fields: imageUrl and originalImageUrl" 
+        },
         { status: 400 }
       );
     }
 
-    console.log("Received image URL:", imageUrl);
+    // Validate imageUrl format
+    if (!imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+      return NextResponse.json(
+        { 
+          status: "error",
+          message: "Invalid imageUrl format" 
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log("Processing generated image for user:", session.user.email);
 
     // Get user from database
     const user = await prisma.user.findUnique({
@@ -34,16 +52,45 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ 
+        status: "error",
+        message: "User not found in database" 
+      }, { status: 404 });
     }
 
     // Find the original image by URL
     const originalImage = await prisma.images.findFirst({
-      where: { url: originalImageUrl },
+      where: { 
+        url: originalImageUrl,
+        userId: user.id // Ensure the image belongs to the user
+      },
       select: { id: true }
     });
+
     if (!originalImage) {
-      return NextResponse.json({ error: "Original image not found" }, { status: 404 });
+      return NextResponse.json({ 
+        status: "error",
+        message: "Original image not found or doesn't belong to user" 
+      }, { status: 404 });
+    }
+
+    // Check if this image has already been processed (avoid duplicates)
+    const existingGenerated = await prisma.aiGeneratedImage.findFirst({
+      where: {
+        originalImageId: originalImage.id,
+        userId: user.id,
+        description: prompt || null
+      }
+    });
+
+    if (existingGenerated) {
+      console.log("Image already processed, returning existing result");
+      return NextResponse.json({
+        status: "success",
+        url: existingGenerated.imageUrl,
+        id: existingGenerated.id,
+        message: "Image already processed"
+      });
     }
 
     try {
@@ -53,7 +100,7 @@ export async function POST(req: NextRequest) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
       }
       const imageBuffer = await response.arrayBuffer();
-      console.log("Successfully downloaded image");
+      console.log("Successfully downloaded generated image");
 
       // Upload to Cloudinary
       const uploadRes = await new Promise<UploadApiResponse>((resolve, reject) => {
@@ -67,7 +114,7 @@ export async function POST(req: NextRequest) {
               console.error("Cloudinary upload error:", error);
               reject(error);
             } else if (result) {
-              console.log("Cloudinary upload success:", result);
+              console.log("Cloudinary upload success:", result.secure_url);
               resolve(result);
             } else {
               reject(new Error("Upload failed: No result received"));
@@ -77,8 +124,6 @@ export async function POST(req: NextRequest) {
 
         uploadStream.end(Buffer.from(imageBuffer));
       });
-
-      console.log("Uploaded to Cloudinary:", uploadRes.secure_url);
 
       // Store in database
       const generatedImage = await prisma.aiGeneratedImage.create({
@@ -96,22 +141,35 @@ export async function POST(req: NextRequest) {
         data: { aiGenerationCount: { increment: 1 } },
       });
 
-      console.log("Stored in database:", generatedImage);
+      console.log("Successfully stored generated image:", generatedImage.id);
 
       return NextResponse.json({
+        status: "success",
         url: uploadRes.secure_url,
         id: generatedImage.id,
+        message: "Image stored successfully"
       });
 
     } catch (error) {
       console.error("Image processing error:", error);
-      throw error;
+      return NextResponse.json(
+        { 
+          status: "error",
+          message: "Failed to process and store image",
+          error: error instanceof Error ? error.message : "Unknown error"
+        },
+        { status: 500 }
+      );
     }
 
   } catch (error) {
     console.error("Store generated image error:", error);
     return NextResponse.json(
-      { error: "Failed to store generated image" },
+      { 
+        status: "error",
+        message: "Internal server error",
+        error: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   } finally {

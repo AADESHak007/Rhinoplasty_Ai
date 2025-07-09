@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 import { Sparkles } from 'lucide-react';
 
@@ -73,6 +75,9 @@ const RHINOPLASTY_SIDE_OPTIONS = {
 
 
 export default function GeneratePage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [selectedView, setSelectedView] = useState<string>("front");
   const [selectedOption, setSelectedOption] = useState<string>("roman");
@@ -92,6 +97,77 @@ export default function GeneratePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [authFailed, setAuthFailed] = useState(false);
+  
+  // Redirect to signin if not authenticated
+  useEffect(() => {
+    if (status === 'loading') return; // Still loading
+    if (!session) {
+      router.push('/auth/signin');
+    }
+  }, [session, status, router]);
+
+  // Progressive loader logic
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (isLoading) {
+      // Reset progress when starting
+      setProgress(0);
+      let localProgress = 0;
+      
+      interval = setInterval(() => {
+        // Slower, more gradual progress to 80%
+        localProgress += Math.random() * 1.5 + 0.5; // 0.5 to 2.0 increment
+        if (localProgress < 80) {
+          setProgress(Math.floor(localProgress));
+        } else {
+          setProgress(80);
+          clearInterval(interval!);
+        }
+      }, 100); // Slower updates for smoother feel
+      
+    } else if (!isLoading && progress > 0) {
+      // When loading is complete, progress from current to 100%
+      let localProgress = progress;
+      
+      interval = setInterval(() => {
+        // 5% increments from current progress to 100%
+        localProgress += 5;
+        if (localProgress < 100) {
+          setProgress(localProgress);
+        } else {
+          setProgress(100);
+          clearInterval(interval!);
+          
+          // Reset progress after a delay for next generation
+          setTimeout(() => {
+            setProgress(0);
+          }, 2000);
+        }
+      }, 200); // Slower increments for better UX
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isLoading, progress]);
+
+  // Show loading while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the main content if not authenticated
+  if (!session) {
+    return null;
+  }
 
 
   // Get current options based on selected view
@@ -188,52 +264,6 @@ export default function GeneratePage() {
       setIsStoring(false);
     }
   };
-
-  // Progressive loader logic
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    
-    if (isLoading) {
-      // Reset progress when starting
-      setProgress(0);
-      let localProgress = 0;
-      
-      interval = setInterval(() => {
-        // Slower, more gradual progress to 80%
-        localProgress += Math.random() * 1.5 + 0.5; // 0.5 to 2.0 increment
-        if (localProgress < 80) {
-          setProgress(Math.floor(localProgress));
-        } else {
-          setProgress(80);
-          clearInterval(interval!);
-        }
-      }, 100); // Slower updates for smoother feel
-      
-    } else if (!isLoading && progress > 0) {
-      // When loading is complete, progress from current to 100%
-      let localProgress = progress;
-      
-      interval = setInterval(() => {
-        // 5% increments from current progress to 100%
-        localProgress += 5;
-        if (localProgress < 100) {
-          setProgress(localProgress);
-        } else {
-          setProgress(100);
-          clearInterval(interval!);
-          
-          // Reset progress after a delay for next generation
-          setTimeout(() => {
-            setProgress(0);
-          }, 2000);
-        }
-      }, 200); // Slower increments for better UX
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isLoading, progress]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">

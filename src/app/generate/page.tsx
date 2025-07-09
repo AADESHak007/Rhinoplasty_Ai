@@ -269,54 +269,54 @@ export default function GeneratePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
 
       {/* Stepper */}
-      <div className="flex flex-col items-center mb-8">
-        <h1 className="text-4xl font-extrabold text-[#181c2a] mt-8 mb-2">Generate Your Perfect Nose</h1>
-        <p className="text-lg text-[#4b5563] mb-6">Follow the steps below to visualize your ideal nose shape with AI technology</p>
-        <div className="flex items-center gap-8">
+      <div className="flex flex-col items-center mb-6 sm:mb-8 px-4">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#181c2a] mt-6 sm:mt-8 mb-2 text-center">Generate Your Perfect Nose</h1>
+        <p className="text-sm sm:text-lg text-[#4b5563] mb-4 sm:mb-6 text-center px-2">Follow the steps below to visualize your ideal nose shape with AI technology</p>
+        <div className="flex items-center gap-2 sm:gap-4 lg:gap-8">
           <div className={`flex flex-col items-center ${originalImageUrl ? 'text-[#7b5cff]' : 'text-gray-400'}`}>
-            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold">1</span>
-            <span className="mt-2 font-semibold">Upload</span>
+            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-xl font-bold">1</span>
+            <span className="mt-1 sm:mt-2 font-semibold text-xs sm:text-sm">Upload</span>
           </div>
-          <span className="w-12 h-1 bg-gray-200 rounded-full" />
+          <span className="w-6 sm:w-8 lg:w-12 h-1 bg-gray-200 rounded-full" />
           <div className={`flex flex-col items-center ${originalImageUrl ? 'text-[#7b5cff]' : 'text-gray-400'}`}>
-            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold">2</span>
-            <span className="mt-2 font-semibold">Configure</span>
+            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-xl font-bold">2</span>
+            <span className="mt-1 sm:mt-2 font-semibold text-xs sm:text-sm">Configure</span>
           </div>
-          <span className="w-12 h-1 bg-gray-200 rounded-full" />
+          <span className="w-6 sm:w-8 lg:w-12 h-1 bg-gray-200 rounded-full" />
           <div className={`flex flex-col items-center ${generatedImageUrl ? 'text-[#7b5cff]' : 'text-gray-400'}`}>
-            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold">3</span>
-            <span className="mt-2 font-semibold">Generate</span>
+            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-xl font-bold">3</span>
+            <span className="mt-1 sm:mt-2 font-semibold text-xs sm:text-sm">Generate</span>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 pb-6 sm:pb-10">
         {/* Step 1: Upload */}
-        <div className="mb-10">
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-            <div className="flex items-center mb-6">
-              <span className="bg-[#2563eb] text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">1</span>
-              <span className="text-xl font-bold text-[#181c2a]">Upload Your Photo</span>
+        <div className="mb-6 sm:mb-10">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
+            <div className="flex items-center mb-4 sm:mb-6">
+              <span className="bg-[#2563eb] text-white rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-sm sm:text-base font-bold mr-2 sm:mr-3">1</span>
+              <span className="text-lg sm:text-xl font-bold text-[#181c2a]">Upload Your Photo</span>
             </div>
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center bg-[#f5f8fc]">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 flex flex-col items-center bg-[#f5f8fc]">
               {!previewUrl ? (
                 <>
                   <label htmlFor="file-upload" className="flex flex-col items-center cursor-pointer">
-                    <span className="bg-gray-100 rounded-full p-4 mb-4">
-                      <svg width="36" height="36" fill="none" viewBox="0 0 36 36"><path d="M18 6v18M6 18h24" stroke="#7b5cff" strokeWidth="3" strokeLinecap="round"/></svg>
+                    <span className="bg-gray-100 rounded-full p-3 sm:p-4 mb-3 sm:mb-4">
+                      <svg width="28" height="28" className="sm:w-9 sm:h-9" fill="none" viewBox="0 0 36 36"><path d="M18 6v18M6 18h24" stroke="#7b5cff" strokeWidth="3" strokeLinecap="round"/></svg>
                     </span>
-                    <span className="text-lg font-semibold text-[#181c2a] mb-2">Upload your photo</span>
-                    <span className="text-sm text-gray-500">PNG, JPG up to 10MB • Best results with clear front or side view</span>
+                    <span className="text-base sm:text-lg font-semibold text-[#181c2a] mb-2 text-center">Upload your photo</span>
+                    <span className="text-xs sm:text-sm text-gray-500 text-center px-2">PNG, JPG up to 10MB • Best results with clear front or side view</span>
                     <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                   </label>
                 </>
               ) : (
                 <div className="flex flex-col items-center w-full">
-                  <div className="bg-[#e9f0fb] border-2 border-dashed border-[#7b5cff] rounded-xl p-6 flex flex-col items-center w-full">
-                    <Image src={previewUrl} alt="Preview" width={220} height={280} className="rounded-lg object-contain" />
+                  <div className="bg-[#e9f0fb] border-2 border-dashed border-[#7b5cff] rounded-lg sm:rounded-xl p-4 sm:p-6 flex flex-col items-center w-full">
+                    <Image src={previewUrl} alt="Preview" width={180} height={230} className="sm:w-[220px] sm:h-[280px] rounded-lg object-contain" />
                   </div>
-                  <span className="text-[#2563eb] font-semibold mt-4">Photo uploaded successfully!</span>
-                  <span className="text-sm text-gray-500 cursor-pointer mt-1" onClick={() => setPreviewUrl("")}>Click to change image</span>
+                  <span className="text-[#2563eb] font-semibold mt-3 sm:mt-4 text-sm sm:text-base">Photo uploaded successfully!</span>
+                  <span className="text-xs sm:text-sm text-gray-500 cursor-pointer mt-1" onClick={() => setPreviewUrl("")}>Click to change image</span>
                 </div>
               )}
               {previewUrl && !originalImageUrl && !maskImageUrl && (

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const maskFormData = new FormData();
     maskFormData.append('file', file);
     
-    const maskRequest = new Request('/api/mask-image', {
+    const maskRequest = new Request(`${process.env.NEXTAUTH_URL}/api/mask-image`, {
       method: 'POST',
       body: maskFormData,
     });

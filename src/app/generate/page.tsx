@@ -97,6 +97,7 @@ export default function GeneratePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [authFailed, setAuthFailed] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
   
   // Redirect to signin if not authenticated
   useEffect(() => {
@@ -377,27 +378,64 @@ export default function GeneratePage() {
                           {value.label.replace(/\(.*\)/, '')}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {key === 'straight' && 'Classic straight bridge'}
-                          {key === 'button' && ''}
-                          {key === 'roman' && ''}
-                          {key === 'upturned' && 'Slightly upward tip'}
-                          {key === 'refined' && 'Elegant and narrow'}
-                          {key === 'custom' && 'Custom Description'}
+                          {key === 'greek' && 'Classic straight bridge'}
+                          {key === 'button' && 'a soft, rounded button-like shape'}
+                          {key === 'roman' && 'wider, more prominent nasal bridge'}
+                          {key === 'turnedUp' && 'Slightly upward tip'}
+                          {key === 'nubian' && 'a broader, nasal base with notably wider, more flared nostrils'}
+                          {key === 'custom' && 'Custom Description , IMP : Make sure to describe the nose shape and the VIEW for better results '}
                         </span>
                       </div>
                     </label>
                   ))}
                   {selectedOption === 'custom' && (
                     <div className="mt-2 w-full">
-                    <textarea
-                      value={customPrompt}
-                      onChange={(e) => setCustomPrompt(e.target.value)}
+                      <textarea
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
                         placeholder="Describe your ideal nose shape in detail... (e.g., 'slightly smaller, more refined tip, straighter bridge')"
                         className="w-full px-3 py-2 border border-blue-200 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         rows={3}
                       />
-                      </div>
-                    )}
+                      <button
+                        type="button"
+                        disabled={!customPrompt.trim() || isOptimizing}
+                        onClick={async () => {
+                          if (!customPrompt.trim()) return;
+                          setIsOptimizing(true);
+                          try {
+                            const response = await fetch('/api/optimizePrompt', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ prompt: customPrompt }),
+                            });
+                            if (!response.ok) throw new Error('Failed to optimize prompt');
+                            const data = await response.json();
+                            setCustomPrompt(data.optimizedPrompt);
+                          } catch (err) {
+                            setError('Failed to optimize prompt. Please try again.');
+                            console.error('Optimize prompt error:', err);
+                          } finally {
+                            setIsOptimizing(false);
+                          }
+                        }}
+                        className={`mt-3 px-4 py-2 rounded-md font-semibold transition-colors ${
+                          !customPrompt.trim() || isOptimizing
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                      >
+                        {isOptimizing ? (
+                          <div className="flex items-center justify-center">
+                            <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Optimizing...
+                          </div>
+                        ) : (
+                          'Optimize Prompt'
+                        )}
+                      </button>
+                    </div>
+                  )}
                   </div>
                 </div>
               {error && (
@@ -483,14 +521,14 @@ export default function GeneratePage() {
               <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 flex flex-col items-center">
                 <div className="flex items-center mb-4">
                   <span className="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">3</span>
-                  <span className="text-xl font-bold text-[#181c2a] flex items-center"><Sparkles className="w-5 h-5 mr-2 text-blue-500" /> Generate Your Result</span>
+                  <span className="text-xl font-bold text-[#181c2a] flex items-center"><Sparkles className="w-5 h-5 mr-2 text-blue-500" /> Generating Your Result</span>
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-4 mb-4">
                     <Sparkles className="w-8 h-8 text-white glitter-star" />
                   </div>
                   <div className="text-xl font-semibold mb-2">AI is working its magic...</div>
-                  <div className="text-gray-500 mb-4">Analyzing your photo and generating your perfect nose shape</div>
+                  <div className="text-gray-500 mb-4">Analyzing your photo and generating your perfect nose shape ...</div>
                 </div>
               </div>
             </div>

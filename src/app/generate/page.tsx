@@ -546,9 +546,16 @@ export default function GeneratePage() {
         {/* Step 3: Results - Only show if output is generated */}
         {generatedImageUrl && !isLoading && (
           <div className="bg-white rounded-2xl shadow-2xl p-8 border border-blue-100">
-            <div className="flex items-center mb-6">
-              <span className="bg-[#2563eb] text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">3</span>
-              <span className="text-xl font-bold text-[#181c2a]">Results</span>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center">
+                <span className="bg-[#2563eb] text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3">3</span>
+                <span className="text-xl font-bold text-[#181c2a]">Results</span>
+              </div>
+              {generatedNoseType && (
+                <div className="ml-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                  {generatedNoseType}
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Original Photo Card */}
@@ -569,11 +576,6 @@ export default function GeneratePage() {
               {/* Simulated Outcome Card */}
               <div className="bg-blue-50 rounded-xl shadow-lg p-4 border-2 border-blue-100 flex flex-col items-center">
                 <h3 className="text-lg font-semibold mb-4 text-[#185a9d]">Simulated Outcome</h3>
-                {generatedNoseType && (
-                  <div className="mb-3 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                    {generatedNoseType}
-                  </div>
-                )}
                 <div className="rounded-xl overflow-hidden border border-blue-200 bg-white flex items-center justify-center w-full h-80 relative">
                       <Image
                         src={generatedImageUrl}

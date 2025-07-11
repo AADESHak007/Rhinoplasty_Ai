@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       }, { status: 401 });
     }
 
-    const { imageUrl, originalImageUrl, prompt } = await req.json();
+    const { imageUrl, originalImageUrl, prompt, nose_type } = await req.json();
 
     // Validate required fields
     if (!imageUrl || !originalImageUrl) {
@@ -79,7 +79,8 @@ export async function POST(req: NextRequest) {
       where: {
         originalImageId: originalImage.id,
         userId: user.id,
-        description: prompt || null
+        description: prompt || null,
+        nose_type: nose_type || null
       }
     });
 
@@ -132,6 +133,7 @@ export async function POST(req: NextRequest) {
           userId: user.id,
           originalImageId: originalImage.id,
           description: prompt,
+          nose_type: nose_type || null,
         },
       });
 

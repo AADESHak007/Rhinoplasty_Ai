@@ -8,6 +8,7 @@ interface Generation {
   aiImageUrl: string;
   createdAt: string;
   description?: string;
+  nose_type?: string;
 }
 
 // Add a type for the raw data returned from the API
@@ -17,6 +18,7 @@ interface RawGeneration {
   aiImageUrl: string | null;
   createdAt: string | Date;
   description: string | null;
+  nose_type: string | null;
 }
 
 export default function HistoryPage() {
@@ -36,6 +38,7 @@ export default function HistoryPage() {
             originalImageUrl: g.originalImageUrl || "",
             aiImageUrl: g.aiImageUrl || "",
             createdAt: typeof g.createdAt === "string" ? g.createdAt : new Date(g.createdAt).toISOString(),
+            nose_type: g.nose_type || undefined,
             // description: g.description || undefined, // removed
           }))
         );
@@ -79,21 +82,14 @@ export default function HistoryPage() {
               <div key={generation.id} className="bg-white rounded-xl shadow-lg px-4 sm:px-6 pt-4 pb-3 sm:pb-5 border border-slate-100">
                 {/* Top bar */}
                 <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <div className="text-base font-semibold text-gray-800 mb-4">
-                      Generated on {formatDate(generation.createdAt)}
-                    </div>
+                  <div className="text-base font-semibold text-gray-800 mb-4">
+                    Generated on {formatDate(generation.createdAt)}
                   </div>
-                  {/* <div className="flex items-center gap-2">
-                    <button
-                      className="ml-2 text-red-400 hover:text-red-600 p-1 rounded transition"
-                      title="Delete"
-                      // onClick={() => handleDelete(generation.id)}
-                      disabled
-                    >
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  </div> */}
+                  {generation.nose_type && (
+                    <div className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                      {generation.nose_type}
+                    </div>
+                  )}
                 </div>
                 {/* Images */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-2 sm:mb-4">
@@ -107,8 +103,13 @@ export default function HistoryPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center relative">
                     <div className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Generated Result</div>
+                    {/* {generation.nose_type && (
+                      <div className="absolute top-0 right-0 mt-2 mr-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium z-10">
+                        {generation.nose_type}
+                      </div>
+                    )} */}
                     <div className="w-40 h-40 sm:w-48 sm:h-48 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border">
                       {generation.aiImageUrl ? (
                         <Image src={generation.aiImageUrl} alt="Generated" width={192} height={192} className="object-contain w-full h-full" />

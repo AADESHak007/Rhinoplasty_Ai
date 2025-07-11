@@ -24,6 +24,7 @@ const getUserGenerations = async () => {
         imageUrl: true,
         createdAt: true,
         description: true,
+        nose_type: true,
         originalImage: {
           select: {
             id: true,
@@ -39,6 +40,7 @@ const getUserGenerations = async () => {
       originalImageUrl: gen.originalImage?.url || null,
       createdAt: gen.createdAt,
       description: gen.description,
+      nose_type: gen.nose_type,
     }));
   } catch (error) {
     console.error("Error retrieving user generations:", error);

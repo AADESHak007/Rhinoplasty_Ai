@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
     // 1. Generate mask using the /api/mask-image route with FormData
     const maskFormData = new FormData();
     maskFormData.append('file', file);
-    // " http://localhost:3000/api/mask-image" 
+
+    // "https://rhinoplasty-ai-iota.vercel.app/api/mask-image --  http://localhost:3000/api/mask-image" 
+
     const maskResponse = await fetch("https://rhinoplasty-ai-iota.vercel.app/api/mask-image", {
       method: 'POST',
       body: maskFormData,

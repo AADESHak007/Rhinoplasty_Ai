@@ -31,7 +31,7 @@ const RHINOPLASTY_FRONT_OPTIONS = {
   },
   greek: {
     label: "Greek/Straight Nose(Front)",
-    prompt: "NOSE MODIFICATION ONLY: Transform the nose to have a narrow, perfectly straight nasal bridge with clean geometric lines and refined, symmetrical tip with proportioned nostrils creating a classically balanced Greek nose appearance. ABSOLUTE PRESERVATION REQUIRED: Keep identical eye shape, eye color, eyebrow shape, eyebrow color, eyebrow position, forehead, cheek structure, cheekbone definition, jawline, chin shape, lip color (exact RGB values), lip texture, lip fullness, lip outline, mouth corners, philtrum, skin texture, skin tone (exact color match), facial hair, lighting direction, shadow placement, highlight placement, facial expression, head angle, camera angle, background. DO NOT alter face shape, facial proportions, or any feature outside the nose area. Same person, identical appearance, only nasal structure modified."
+    prompt: "Straighten the nasal dorsum, eliminating all curvatures and irregularities to achieve a completely aligned, straight, and a bit slimmer bridge. Refine the nasal tip to create a well-defined and balanced projection, maintaining the existing tip rotation and alar base width. Modify only the nasal structures; precisely adjust the nasal bridge and tip while meticulously preserving the existing skin tone, texture, and lighting; maintain the integrity of the eyes, eyebrows, cheeks, lips, jawline, hair, and facial expression, ensuring no alteration to these features.  Preserve the original image resolution and maintain a consistent overall facial harmony."
   },
   turnedUp: {
     label: "Turned Up Nose(Front)",
@@ -39,7 +39,7 @@ const RHINOPLASTY_FRONT_OPTIONS = {
   },
   button: {
     label: "Button Nose(Front)",
-    prompt: "NOSE MODIFICATION ONLY: Transform the nose to be smaller and more compact with a soft, rounded button-like shape featuring a distinctly upturned, petite tip and small, delicate nostril openings. ABSOLUTE PRESERVATION REQUIRED: Keep identical eye shape, eye color, eyebrow shape, eyebrow color, eyebrow position, forehead, cheek structure, cheekbone definition, jawline, chin shape, lip color (exact RGB values), lip texture, lip fullness, lip outline, mouth corners, philtrum, skin texture, skin tone (exact color match), facial hair, lighting direction, shadow placement, highlight placement, facial expression, head angle, camera angle, background. DO NOT alter face shape, facial proportions, or any feature outside the nose area. Same person, identical appearance, only nasal structure modified."
+    prompt: "Refine the nasal tip to achieve a smaller, rounded configuration, resembling a button shape.  Modify only the nasal dorsum to shorten its length and reduce its prominence, maintaining a straight profile.  Adjust the nasal tip and bridge in the front view only, meticulously preserving all other facial features including skin tone, eye shape and position, eyebrow shape and position, jawline, lip shape and position, cheek structure, facial expression, hair, and overall lighting and resolution.  Do not alter the alar base, columella, or any other facial feature beyond the specified nasal tip and dorsum modifications."
   },
   custom: {
     label: "Custom",
@@ -98,6 +98,7 @@ export default function GeneratePage() {
   const [progress, setProgress] = useState(0);
   const [authFailed, setAuthFailed] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [generatedNoseType, setGeneratedNoseType] = useState<string>("");
   
   // Redirect to signin if not authenticated
   useEffect(() => {
@@ -225,7 +226,7 @@ export default function GeneratePage() {
   };
 
   // Store generated image when it's created
-  const storeGeneratedImage = async (imageUrl: string, originalUrl: string, prompt?: string) => {
+  const storeGeneratedImage = async (imageUrl: string, originalUrl: string, prompt?: string, noseType?: string) => {
     if (isStoring || authFailed) return; // Prevent multiple calls
     
     setIsStoring(true);
@@ -237,6 +238,7 @@ export default function GeneratePage() {
           imageUrl: imageUrl,
           originalImageUrl: originalUrl,
           prompt: prompt,
+          nose_type: noseType,
         }),
       });
       
@@ -485,8 +487,14 @@ export default function GeneratePage() {
                     if (!extractedImageUrl) throw new Error('No image returned');
                     setGeneratedImageUrl(extractedImageUrl);
                     
+                    // Get the nose type label for storage
+                    const noseTypeLabel = selectedOption === 'custom' ? 'Custom' : currentOptions[selectedOption as keyof typeof currentOptions].label;
+                    
                     // Store the generated image in Cloudinary and DB
-                    await storeGeneratedImage(extractedImageUrl, originalImageUrl, finalPrompt);
+                    await storeGeneratedImage(extractedImageUrl, originalImageUrl, finalPrompt, noseTypeLabel);
+                    
+                    // Set the generated nose type for display
+                    setGeneratedNoseType(noseTypeLabel);
                   } catch (err) {
                     setError('AI generation failed.');
                     console.error('AI generation error:', err);
@@ -561,6 +569,11 @@ export default function GeneratePage() {
               {/* Simulated Outcome Card */}
               <div className="bg-blue-50 rounded-xl shadow-lg p-4 border-2 border-blue-100 flex flex-col items-center">
                 <h3 className="text-lg font-semibold mb-4 text-[#185a9d]">Simulated Outcome</h3>
+                {generatedNoseType && (
+                  <div className="mb-3 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    {generatedNoseType}
+                  </div>
+                )}
                 <div className="rounded-xl overflow-hidden border border-blue-200 bg-white flex items-center justify-center w-full h-80 relative">
                       <Image
                         src={generatedImageUrl}

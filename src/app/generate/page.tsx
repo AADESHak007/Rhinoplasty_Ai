@@ -332,7 +332,7 @@ export default function GeneratePage() {
                       <svg width="28" height="28" className="sm:w-9 sm:h-9" fill="none" viewBox="0 0 36 36"><path d="M18 6v18M6 18h24" stroke="#7b5cff" strokeWidth="3" strokeLinecap="round"/></svg>
                     </span>
                     <span className="text-base sm:text-lg font-semibold text-[#181c2a] mb-2 text-center">Upload your photo</span>
-                    <span className="text-xs sm:text-sm text-gray-500 text-center px-2">PNG, JPG up to 10MB • Best results with clear front or side view</span>
+                    <span className="text-xs sm:text-sm text-gray-500 text-center px-2">• PNG, JPG up to 10MB •</span>
                     <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                   </label>
                 </>
@@ -374,14 +374,14 @@ export default function GeneratePage() {
                     <input type="radio" value="front" checked={selectedView === "front"} onChange={() => setSelectedView('front')} className="hidden" />
                     <div className="flex flex-col items-start">
                       <span className="text-lg font-semibold text-[#181c2a]">Front View</span>
-                      <span className="text-xs text-gray-500">Best for frontal nose shape, symmetry and modifications</span>
+                      <span className="text-xs text-gray-500">Designed for Front nose shapes and modifications</span>
           </div>
                   </label>
                   <label className={`flex-1 border rounded-lg px-4 py-3 cursor-pointer ${selectedView === 'side' ? 'border-[#7b5cff] bg-[#f5f8fc]' : 'border-gray-200 bg-white'}`}>
                     <input type="radio" value="side" checked={selectedView === "side"} onChange={() => setSelectedView('side')} className="hidden" />
                     <div className="flex flex-col items-start">
                       <span className="text-lg font-semibold text-[#181c2a]">Side View</span>
-                      <span className="text-xs text-gray-500">Best for nose shape, symmetry and modifications</span>
+                      <span className="text-xs text-gray-500">Designed for Side nose shapes and modifications</span>
                     </div>
                   </label>
                 </div>

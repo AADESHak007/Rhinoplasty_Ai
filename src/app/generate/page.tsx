@@ -329,7 +329,12 @@ export default function GeneratePage() {
                 <>
                   <label htmlFor="file-upload" className="flex flex-col items-center cursor-pointer">
                     <span className="bg-gray-100 rounded-full p-3 sm:p-4 mb-3 sm:mb-4">
-                      <svg width="28" height="28" className="sm:w-9 sm:h-9" fill="none" viewBox="0 0 36 36"><path d="M18 6v18M6 18h24" stroke="#7b5cff" strokeWidth="3" strokeLinecap="round"/></svg>
+                      {/* Arrow Up From Line Icon */}
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7b5cff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
+                        <path d="m18 9-6-6-6 6"/>
+                        <path d="M12 3v14"/>
+                        <path d="M5 21h14"/>
+                      </svg>
                     </span>
                     <span className="text-base sm:text-lg font-semibold text-[#181c2a] mb-2 text-center">Upload your photo</span>
                     <span className="text-xs sm:text-sm text-gray-500 text-center px-2">• PNG, JPG up to 10MB •</span>

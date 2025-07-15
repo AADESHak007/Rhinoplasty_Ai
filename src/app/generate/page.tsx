@@ -277,17 +277,26 @@ export default function GeneratePage() {
         <p className="text-sm sm:text-lg text-[#4b5563] mb-4 sm:mb-6 text-center px-2">Follow the steps below to visualize your ideal nose shape with AI technology</p>
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-8">
           <div className={`flex flex-col items-center ${originalImageUrl ? 'text-[#7b5cff]' : 'text-gray-400'}`}>
-            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-xl font-bold">1</span>
+            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-xl font-bold">
+              {/* Upload Icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-upload-icon lucide-upload w-6 h-6"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+            </span>
             <span className="mt-1 sm:mt-2 font-semibold text-xs sm:text-sm">Upload</span>
           </div>
           <span className="w-6 sm:w-8 lg:w-12 h-1 bg-gray-200 rounded-full" />
           <div className={`flex flex-col items-center ${originalImageUrl ? 'text-[#7b5cff]' : 'text-gray-400'}`}>
-            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-xl font-bold">2</span>
+            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-xl font-bold">
+              {/* Settings Icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-settings-icon lucide-settings w-6 h-6"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
             <span className="mt-1 sm:mt-2 font-semibold text-xs sm:text-sm">Configure</span>
           </div>
           <span className="w-6 sm:w-8 lg:w-12 h-1 bg-gray-200 rounded-full" />
           <div className={`flex flex-col items-center ${generatedImageUrl ? 'text-[#7b5cff]' : 'text-gray-400'}`}>
-            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-xl font-bold">3</span>
+            <span className="bg-white border-2 border-[#7b5cff] rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-xl font-bold">
+              {/* Zap Icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-zap-icon lucide-zap w-6 h-6"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+            </span>
             <span className="mt-1 sm:mt-2 font-semibold text-xs sm:text-sm">Generate</span>
           </div>
         </div>
@@ -300,6 +309,20 @@ export default function GeneratePage() {
             <div className="flex items-center mb-4 sm:mb-6">
               <span className="bg-[#2563eb] text-white rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-sm sm:text-base font-bold mr-2 sm:mr-3">1</span>
               <span className="text-lg sm:text-xl font-bold text-[#181c2a]">Upload Your Photo</span>
+            </div>
+            <div className="mb-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col">
+                <div className="flex items-center mb-2">
+                  <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#3b82f6" strokeWidth="2"/><path d="M12 8v4m0 4h.01" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"/></svg>
+                  <span className="font-bold text-blue-800">Photo Requirements for Best Results</span>
+                </div>
+                <ul className="list-disc pl-6 text-sm text-blue-900">
+                  <li><span className="font-semibold">Front view:</span> Face the camera directly with your full face visible</li>
+                  <li><span className="font-semibold">Side view:</span> Turn your head 90° to show your complete profile</li>
+                  <li><span className="font-semibold">Frame:</span> Include from forehead to chin (full face visible)</li>
+                  <li><span className="font-semibold">Quality:</span> Use good lighting and avoid shadows on your nose</li>
+                </ul>
+              </div>
             </div>
             <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 flex flex-col items-center bg-[#f5f8fc]">
               {!previewUrl ? (

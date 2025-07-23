@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     // "https://rhinoplasty-ai-iota.vercel.app/api/mask-image --  http://localhost:3000/api/mask-image" 
 
-    const maskResponse = await fetch("https://rhinoplasty-ai-iota.vercel.app/api/mask-image", {
+    const maskResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/mask-image`, {
       method: 'POST',
       body: maskFormData,
     });
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
     
     const maskBuffer = Buffer.from(await maskResponse2.arrayBuffer());
-    
+    console.log("uploading starts ....")
     const uploadMask = await new Promise<UploadApiResponse>((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { folder: "rhinoplasty", resource_type: "image" },
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       );
       stream.end(maskBuffer);
     });
-
+console.log("getting the current user .....")
     // 4. Store original image in DB
     const user = await getCurrentUser();
     let imageDbId = null;

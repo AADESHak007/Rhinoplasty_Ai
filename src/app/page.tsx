@@ -1,11 +1,41 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+
 export default function Home() {
+  const [message, setMessage] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const urlMessage = searchParams.get('message');
+    if (urlMessage) {
+      setMessage(urlMessage);
+      // Clear the message after 5 seconds
+      const timer = setTimeout(() => setMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
 
   return (
     <div className="bg-[#f8fbff] min-h-screen flex flex-col">
+      
+      {/* Success Message */}
+      {message && (
+        <div className="w-full bg-green-100 border border-green-400 text-green-700 px-4 py-3 text-center">
+          <div className="flex justify-between items-center max-w-4xl mx-auto">
+            <span>{message}</span>
+            <button 
+              onClick={() => setMessage(null)} 
+              className="ml-4 text-green-700 hover:text-green-900 font-bold"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center flex-1 py-12 sm:py-16 lg:py-24 px-3 sm:px-4 text-center bg-[#f8fbff]">

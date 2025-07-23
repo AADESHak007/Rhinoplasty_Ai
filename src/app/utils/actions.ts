@@ -47,7 +47,7 @@ export async function signUpWithEmail(formData: FormData) {
     redirect('/auth/signin?error=Name, email and password are required');
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -58,11 +58,37 @@ export async function signUpWithEmail(formData: FormData) {
     },
   });
 
-  if (error) {
-    redirect(`/auth/signin?error=${encodeURIComponent(error.message)}`);
+  if (signUpError) {
+    redirect(`/auth/signin?error=${encodeURIComponent(signUpError.message)}`);
   }
 
-  redirect('/auth/signin?message=Account created successfully! You can now sign in');
+  // If user is automatically logged in (email confirmation disabled)
+  if (signUpData.session) {
+    redirect('/?message=Welcome! Your account has been created successfully');
+  }
+
+  // If email confirmation is required
+  if (signUpData.user && !signUpData.user.email_confirmed_at) {
+    redirect('/auth/signin?message=Please check your email and click the confirmation link, then sign in');
+  }
+
+  // Fallback - try to sign in immediately (for cases where confirmation is instant)
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (signInError) {
+    // If sign-in fails, user likely needs email confirmation
+    redirect('/auth/signin?message=Account created! Please check your email for confirmation, then sign in');
+  }
+
+  if (signInData.session) {
+    redirect('/?message=Welcome! Your account has been created successfully');
+  }
+
+  // Final fallback
+  redirect('/auth/signin?message=Account created successfully! Please sign in');
 }
 
 export async function signInWithEmail(formData: FormData) {

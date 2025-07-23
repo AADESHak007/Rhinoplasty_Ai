@@ -35,7 +35,7 @@ export default function LoginPage({
           {isSignUp ? 'Create an account' : 'Welcome to Rhinoplasty AI'}
         </h1>
         
-        <AuthMessages searchParams={searchParams} />
+        <AuthMessages searchParams={searchParams} isSignUp={isSignUp} toggleMode={toggleMode} />
 
         {/* Google Sign In */}
         <form className="w-full mb-6">
@@ -145,13 +145,30 @@ export default function LoginPage({
 }
 
 // Helper component to handle async searchParams
-function AuthMessages({ searchParams }: { searchParams: Promise<{ message?: string; error?: string }> }) {
+function AuthMessages({ 
+  searchParams, 
+  isSignUp, 
+  toggleMode 
+}: { 
+  searchParams: Promise<{ message?: string; error?: string }>;
+  isSignUp: boolean;
+  toggleMode: () => void;
+}) {
   const [params, setParams] = useState<{ message?: string; error?: string }>({});
 
   // Use useEffect to resolve the promise
   useEffect(() => {
     searchParams.then(setParams);
   }, [searchParams]);
+
+  const showSignUpSuggestion = params?.error && 
+    (params.error.includes("Don't have an account") || 
+     params.error.includes("Sign up instead") ||
+     params.error.includes("No account found"));
+     
+  const showSignInSuggestion = params?.error && 
+    (params.error.includes("already exists") || 
+     params.error.includes("Please sign in instead"));
 
   return (
     <>
@@ -162,8 +179,28 @@ function AuthMessages({ searchParams }: { searchParams: Promise<{ message?: stri
       )}
       
       {params?.error && (
-        <div className="w-full mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm text-center">
-          {params.error}
+        <div className="w-full mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
+          <div className="text-center">{params.error}</div>
+                     {showSignUpSuggestion && !isSignUp && (
+             <div className="mt-3 text-center">
+               <button
+                 onClick={toggleMode}
+                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-semibold transition-colors"
+               >
+                 Create an account instead
+               </button>
+             </div>
+           )}
+           {showSignInSuggestion && isSignUp && (
+             <div className="mt-3 text-center">
+               <button
+                 onClick={toggleMode}
+                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-semibold transition-colors"
+               >
+                 Sign in instead
+               </button>
+             </div>
+           )}
         </div>
       )}
     </>

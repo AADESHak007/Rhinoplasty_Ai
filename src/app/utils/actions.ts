@@ -59,7 +59,21 @@ export async function signUpWithEmail(formData: FormData) {
   });
 
   if (signUpError) {
-    redirect(`/auth/signin?error=${encodeURIComponent(signUpError.message)}`);
+    // Provide more helpful error messages for signup
+    let userFriendlyMessage = '';
+    
+    if (signUpError.message.includes('User already registered')) {
+      userFriendlyMessage = 'An account with this email already exists. Please sign in instead!';
+    } else if (signUpError.message.includes('Password should be at least')) {
+      userFriendlyMessage = 'Password must be at least 6 characters long.';
+    } else if (signUpError.message.includes('Invalid email')) {
+      userFriendlyMessage = 'Please enter a valid email address.';
+    } else {
+      // Fallback to original error message
+      userFriendlyMessage = signUpError.message;
+    }
+    
+    redirect(`/auth/signin?error=${encodeURIComponent(userFriendlyMessage)}`);
   }
 
   // If user is automatically logged in (email confirmation disabled)
@@ -107,7 +121,25 @@ export async function signInWithEmail(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/auth/signin?error=${encodeURIComponent(error.message)}`);
+    // Provide more helpful error messages based on error type
+    let userFriendlyMessage = '';
+    
+    if (error.message.includes('Invalid login credentials')) {
+      userFriendlyMessage = 'Email or password is incorrect. Don\'t have an account? Sign up instead!';
+    } else if (error.message.includes('Email not confirmed')) {
+      userFriendlyMessage = 'Please check your email and click the confirmation link first.';
+    } else if (error.message.includes('Too many requests')) {
+      userFriendlyMessage = 'Too many login attempts. Please wait a moment and try again.';
+    } else if (error.message.includes('User not found')) {
+      userFriendlyMessage = 'No account found with this email. Please sign up first!';
+    } else if (error.message.includes('Invalid email or password')) {
+      userFriendlyMessage = 'Email or password is incorrect. Please check your credentials and try again.';
+    } else {
+      // Fallback to original error message
+      userFriendlyMessage = error.message;
+    }
+    
+    redirect(`/auth/signin?error=${encodeURIComponent(userFriendlyMessage)}`);
   }
 
   redirect('/');

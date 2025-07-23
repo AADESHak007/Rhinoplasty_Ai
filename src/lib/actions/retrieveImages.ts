@@ -1,9 +1,8 @@
 import { requireAuth } from "../auth-helper";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../prisma";
 
 const getImages = async () => {
     const user = await requireAuth();
-    const prisma = new PrismaClient();
 
     try {
         const images = await prisma.images.findMany({
@@ -21,8 +20,6 @@ const getImages = async () => {
     } catch (error) {
         console.error("Error retrieving images:", error);
         throw new Error("Failed to retrieve images");
-    } finally {
-        await prisma.$disconnect();
     }
 }
 

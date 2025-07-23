@@ -1,7 +1,5 @@
 import { createClient } from '@/app/utils/supabase/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 export async function getCurrentUser() {
   const supabase = await createClient()
@@ -28,7 +26,6 @@ export async function getCurrentUser() {
     })
   }
 
-  await prisma.$disconnect()
   return dbUser
 }
 

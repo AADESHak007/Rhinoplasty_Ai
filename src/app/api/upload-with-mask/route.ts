@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import cloudinary from "@/lib/cloudinary";
 import type { UploadApiResponse } from "cloudinary";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helper";
-
-const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
@@ -91,8 +89,5 @@ console.log("getting the current user .....")
   } catch (error) {
     console.error("Upload-with-mask error:", error);
     return NextResponse.json({ error: "Failed to upload and generate mask" }, { status: 500 });
-  }
-  finally {
-    await prisma.$disconnect();
   }
 } 

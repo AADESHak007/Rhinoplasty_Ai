@@ -1,9 +1,8 @@
 import { requireAuth } from "../auth-helper";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../prisma";
 
 const getUserGenerations = async () => {
   const user = await requireAuth();
-  const prisma = new PrismaClient();
   try {
     const generations = await prisma.aiGeneratedImage.findMany({
       where: { userId: user.id },
@@ -34,8 +33,6 @@ const getUserGenerations = async () => {
   } catch (error) {
     console.error("Error retrieving user generations:", error);
     throw new Error("Failed to retrieve user generations");
-  } finally {
-    await prisma.$disconnect();
   }
 };
 

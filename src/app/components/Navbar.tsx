@@ -58,15 +58,15 @@ export default function Navbar() {
           <span className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:opacity-80 transition">RHINOPLASTY-AI</span>
         </Link>
         
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex flex-1 justify-center gap-6 lg:gap-8">
+        {/* Desktop Navigation - Fixed Center */}
+        <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 gap-6 lg:gap-8">
           {navLinks.map(link => (
             <Link key={link.href} href={link.href} className={`font-medium px-2 py-1 rounded transition-colors ${pathname === link.href ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600' : 'text-gray-700 hover:text-blue-600'}`}>{link.name}</Link>
           ))}
         </div>
 
         {/* Desktop Auth Section */}
-        <div className="hidden md:flex items-center gap-3 lg:gap-4">
+        <div className="hidden md:flex items-center gap-3 lg:gap-4 ml-auto">
           {loading ? null : user ? (
             <>
               <span className="hidden lg:inline text-gray-700 font-semibold text-sm">Welcome, {userName}</span>
@@ -78,12 +78,14 @@ export default function Navbar() {
               </button>
             </>
                       ) : (
+              <>
               <button
                onClick={() => router.push('/auth/signin')}
-              className="px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow hover:from-blue-700 hover:to-purple-700 transition text-sm"
-            >
+               className="px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow hover:from-blue-700 hover:to-purple-700 transition text-sm"
+               >
               Login
             </button>
+              </>
           )}
         </div>
 

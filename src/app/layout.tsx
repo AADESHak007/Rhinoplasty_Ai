@@ -4,7 +4,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import { usePathname } from 'next/navigation';
-import { SessionProvider } from "next-auth/react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,13 +31,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-blue-900 via-blue-800 to-blue-600 text-white`}>
-        <SessionProvider>
-          {!isAuthRoute && <Navbar />}
-          <main > 
-            {/* Add padding top to account for fixed navbar - more on mobile due to two-row navbar */}
-            {children}
-          </main>
-        </SessionProvider>
+        {!isAuthRoute && <Navbar />}
+        <main> 
+          {/* Add padding top to account for fixed navbar - more on mobile due to two-row navbar */}
+          {children}
+        </main>
       </body>
     </html>
   );

@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import cloudinary from "@/lib/cloudinary";
 import type { UploadApiResponse } from "cloudinary";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth-helper";
 
 const prisma = new PrismaClient();
 
@@ -71,20 +70,16 @@ export async function POST(req: NextRequest) {
     });
 
     // 4. Store original image in DB
-    //@ts-expect-error NextAuth v4 compatibility issue with App Router types
-    const session = await getServerSession(authOptions);
+    const user = await getCurrentUser();
     let imageDbId = null;
-    if (session?.user?.email) {
-      const user = await prisma.user.findUnique({ where: { email: session.user.email } });
-      if (user) {
-        const dbImage = await prisma.images.create({
-          data: {
-            url: uploadOriginal.secure_url,
-            userId: user.id,
-          },
-        });
-        imageDbId = dbImage.id;
-      }
+    if (user) {
+      const dbImage = await prisma.images.create({
+        data: {
+          url: uploadOriginal.secure_url,
+          userId: user.id,
+        },
+      });
+      imageDbId = dbImage.id;
     }
 
     // Return URLs and DB id

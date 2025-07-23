@@ -10,8 +10,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+ provider = "postgresql"
   url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 
@@ -19,7 +20,8 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String
-  password  String
+  password  String?  // Made optional for OAuth users
+  supabaseUid String? @unique // Link to Supabase auth.uid
   images    Images[]
   aiImages  AiGeneratedImage[]
   createdAt DateTime @default(now())

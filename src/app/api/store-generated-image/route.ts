@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth-helper";
 import cloudinary from "@/lib/cloudinary";
 import { UploadApiResponse } from "cloudinary";
 
@@ -9,16 +8,7 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
-    //@ts-expect-error NextAuth v4 compatibility issue with App Router types
-    const session = await getServerSession(authOptions);
-    
-    // Early return if no session - don't log this as an error
-    if (!session?.user?.email) {
-      return NextResponse.json({ 
-        status: "unauthorized",
-        message: "User not authenticated" 
-      }, { status: 401 });
-    }
+    const user = await requireAuth();
 
     const { imageUrl, originalImageUrl, prompt, nose_type } = await req.json();
 
@@ -44,19 +34,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log("Processing generated image for user:", session.user.email);
-
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ 
-        status: "error",
-        message: "User not found in database" 
-      }, { status: 404 });
-    }
+    console.log("Processing generated image for user:", user.email);
 
     // Find the original image by URL
     const originalImage = await prisma.images.findFirst({
@@ -166,6 +144,17 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error("Store generated image error:", error);
+    
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json(
+        {
+          status: "unauthorized",
+          message: "User not authenticated"
+        },
+        { status: 401 }
+      );
+    }
+    
     return NextResponse.json(
       { 
         status: "error",

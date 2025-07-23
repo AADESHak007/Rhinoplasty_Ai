@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import { useSession, signIn, signOut } from 'next-auth/react';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/app/utils/supabase/client';
+import { signOut } from '@/app/utils/actions';
+import type { User } from '@supabase/supabase-js';
 
 const navLinks = [
   { name: 'Home', href: '/' },
@@ -14,9 +16,39 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
-  const userName = session?.user?.name || session?.user?.email || '';
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    // Get initial session
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setLoading(false);
+    };
+
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
+
+  const userName = user?.user_metadata?.full_name || user?.email || '';
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-sm w-full">
@@ -35,19 +67,19 @@ export default function Navbar() {
 
         {/* Desktop Auth Section */}
         <div className="hidden md:flex items-center gap-3 lg:gap-4">
-          {status === 'loading' ? null : session ? (
+          {loading ? null : user ? (
             <>
               <span className="hidden lg:inline text-gray-700 font-semibold text-sm">Welcome, {userName}</span>
               <button
-                onClick={() => signOut({ callbackUrl: '/' })}
+                onClick={handleSignOut}
                 className="px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow hover:from-blue-700 hover:to-purple-700 transition text-sm"
               >
                 Logout
               </button>
             </>
-          ) : (
-            <button
-              onClick={() => signIn()}
+                      ) : (
+              <button
+               onClick={() => router.push('/auth/signin')}
               className="px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow hover:from-blue-700 hover:to-purple-700 transition text-sm"
             >
               Login
@@ -87,16 +119,13 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="border-t border-gray-200 pt-3">
-              {status === 'loading' ? (
+              {loading ? (
                 <div className="px-3 py-2 text-gray-500">Loading...</div>
-              ) : session ? (
+              ) : user ? (
                 <>
                   <div className="px-3 py-2 text-sm text-gray-700 font-semibold mb-2">Welcome, {userName}</div>
                   <button
-                    onClick={() => {
-                      signOut({ callbackUrl: '/' });
-                      setIsMobileMenuOpen(false);
-                    }}
+                    onClick={handleSignOut}
                     className="w-full px-3 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow hover:from-blue-700 hover:to-purple-700 transition text-sm"
                   >
                     Logout
@@ -104,10 +133,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <button
-                  onClick={() => {
-                    signIn();
-                    setIsMobileMenuOpen(false);
-                  }}
+                  onClick={() => router.push('/auth/signin')}
                   className="w-full px-3 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow hover:from-blue-700 hover:to-purple-700 transition text-sm"
                 >
                   Login

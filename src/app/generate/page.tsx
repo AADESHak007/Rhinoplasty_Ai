@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/app/utils/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
 import { Sparkles } from 'lucide-react';
 
@@ -75,9 +76,11 @@ const RHINOPLASTY_SIDE_OPTIONS = {
 
 
 export default function GeneratePage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
+  const supabase = createClient();
   
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [selectedView, setSelectedView] = useState<string>("front");
   const [selectedOption, setSelectedOption] = useState<string>("roman");
@@ -100,13 +103,34 @@ export default function GeneratePage() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [generatedNoseType, setGeneratedNoseType] = useState<string>("");
   
-  // Redirect to signin if not authenticated
+  // Check authentication and get user
   useEffect(() => {
-    if (status === 'loading') return; // Still loading
-    if (!session) {
-      router.push('/auth/signin');
-    }
-  }, [session, status, router]);
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setLoading(false);
+      
+      if (!session?.user) {
+        router.push('/auth/signin');
+      }
+    };
+
+    getUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+        
+        if (!session?.user) {
+          router.push('/auth/signin');
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth, router]);
 
   // Progressive loader logic
   useEffect(() => {
@@ -155,7 +179,7 @@ export default function GeneratePage() {
   }, [isLoading, progress]);
 
   // Show loading while checking authentication
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -167,7 +191,7 @@ export default function GeneratePage() {
   }
 
   // Don't render the main content if not authenticated
-  if (!session) {
+  if (!user) {
     return null;
   }
 

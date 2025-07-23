@@ -1,23 +1,12 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth";
+import { requireAuth } from "../auth-helper";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
-
 const getUserGenerations = async () => {
-  //@ts-expect-error NextAuth v4 compatibility issue with App Router types
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user?.email) {
-    throw new Error("Unauthorized. Please login to access your generations.");
-  }
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
-  if (!user) {
-    throw new Error("User not found.");
-  }
-  const userId = user.id;
+  const user = await requireAuth();
+  const prisma = new PrismaClient();
   try {
     const generations = await prisma.aiGeneratedImage.findMany({
-      where: { userId },
+      where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -45,6 +34,8 @@ const getUserGenerations = async () => {
   } catch (error) {
     console.error("Error retrieving user generations:", error);
     throw new Error("Failed to retrieve user generations");
+  } finally {
+    await prisma.$disconnect();
   }
 };
 

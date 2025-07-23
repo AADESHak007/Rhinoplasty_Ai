@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth-helper";
 import cloudinary from "@/lib/cloudinary";
 import { UploadApiResponse } from "cloudinary";
 
@@ -9,12 +8,7 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
-
-    //@ts-expect-error NextAuth v4 compatibility issue with App Router types
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = await requireAuth();
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -59,15 +53,6 @@ export async function POST(req: NextRequest) {
       uploadStream.end(buffer);
     });
 
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // Store image in database
     const image = await prisma.images.create({
       data: {
@@ -88,7 +73,10 @@ export async function POST(req: NextRequest) {
     let statusCode = 500;
     
     if (error instanceof Error) {
-      if (error.message.includes('timeout')) {
+      if (error.message === 'Unauthorized') {
+        errorMessage = "Unauthorized";
+        statusCode = 401;
+      } else if (error.message.includes('timeout')) {
         errorMessage = "Upload timed out. Please try with a smaller image or check your connection.";
         statusCode = 408;
       } else if (error.message.includes('size') || error.message.includes('large')) {

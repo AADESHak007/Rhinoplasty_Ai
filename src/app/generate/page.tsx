@@ -229,6 +229,7 @@ export default function GeneratePage() {
       }
 
       // Use the updated /api/upload-with-mask route that handles everything server-side
+
       const formData = new FormData();
       formData.append('file', selectedFile);
       const uploadResponse = await fetch('/api/upload-with-mask', {
@@ -250,6 +251,7 @@ export default function GeneratePage() {
   };
 
   // Store generated image when it's created
+  
   const storeGeneratedImage = async (imageUrl: string, originalUrl: string, prompt?: string, noseType?: string) => {
     if (isStoring || authFailed) return; // Prevent multiple calls
     

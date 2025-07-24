@@ -236,7 +236,7 @@ export async function POST(request: NextRequest) {
     //    }
     //    const collection = await prisma.aiGeneratedImage.create({
     //      data
-    //    });
+    //    }); // close with prisma.disconnect()
     //  }
 
     // Return the output in the same format as Replicate API

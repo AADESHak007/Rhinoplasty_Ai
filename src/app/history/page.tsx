@@ -50,6 +50,7 @@ export default function HistoryPage() {
     }
     fetchGenerations();
   }, []);
+  // console.log(generations)
 
   const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleString("en-US", {
@@ -119,17 +120,21 @@ export default function HistoryPage() {
                     </div>
                   </div>
                 </div>
+
                 {/* Download buttons */}
                 <div className="flex flex-col sm:flex-row gap-2 mt-2">
                   <button
                     className="flex-1 border border-gray-200 rounded-lg py-2 flex items-center justify-center gap-2 font-semibold text-gray-700 bg-white hover:bg-gray-50 transition"
                     onClick={async () => {
+                      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                      const filename = `Original_Photo_${timestamp}.jpg`;
+                      
                       const response = await fetch(generation.originalImageUrl);
                       const blob = await response.blob();
                       const url = window.URL.createObjectURL(blob);
                       const link = document.createElement('a');
                       link.href = url;
-                      link.download = 'original.jpg';
+                      link.download = filename;
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
@@ -142,12 +147,23 @@ export default function HistoryPage() {
                   <button
                     className="flex-1 border border-gray-200 rounded-lg py-2 flex items-center justify-center gap-2 font-semibold text-gray-700 bg-white hover:bg-gray-50 transition"
                     onClick={async () => {
+                      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                      const noseType = generation.nose_type || 'Generated';
+                      
+                      // Clean the nose type for filename
+                      const cleanedNoseType = noseType
+                        .replace(/\(.*?\)/g, "")  // Remove "(Side)" or "(Front)"
+                        .replace(/\s+/g, "")     // Remove spaces
+                        .replace(/[^a-zA-Z]/g, ""); // Remove non-letters
+                      
+                      const filename = `Rhinoplasty_${cleanedNoseType}_${timestamp}.jpg`;
+
                       const response = await fetch(generation.aiImageUrl);
                       const blob = await response.blob();
                       const url = window.URL.createObjectURL(blob);
                       const link = document.createElement('a');
                       link.href = url;
-                      link.download = 'result.jpg';
+                      link.download = filename;
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);

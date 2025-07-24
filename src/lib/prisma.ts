@@ -15,18 +15,16 @@ const prismaClientSingleton = () => {
   })
 }
 
+// Ensure singleton pattern
 export const prisma = globalForPrisma.prisma ?? prismaClientSingleton()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Only set global in development to prevent multiple instances
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma
+}
 
-// Handle connection cleanup
+// Handle connection cleanup for production
 if (process.env.NODE_ENV === 'production') {
-  // Ensure initial connection
-  prisma.$connect().then(() => {
-    console.log('Connected to database')
-  })
-  
-  // Handle various termination scenarios
   const cleanup = async () => {
     console.log('Cleaning up database connections')
     await prisma.$disconnect()

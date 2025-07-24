@@ -10,25 +10,23 @@ export async function getCurrentUser() {
     return null
   }
 
-  return prisma.$transaction(async (tx) => {
-    // Get user from our database using Supabase UID
-    let dbUser = await tx.user.findUnique({
-      where: { supabaseUid: user.id },
-    })
-
-    // If user doesn't exist in our database but exists in Supabase, create them
-    if (!dbUser && user) {
-      dbUser = await tx.user.create({
-        data: {
-          email: user.email!,
-          name: user.user_metadata?.full_name || user.email!.split('@')[0],
-          supabaseUid: user.id,
-        },
-      })
-    }
-
-    return dbUser
+  // Get user from our database using Supabase UID
+  let dbUser = await prisma.user.findUnique({
+    where: { supabaseUid: user.id },
   })
+
+  // If user doesn't exist in our database but exists in Supabase, create them
+  if (!dbUser && user) {
+    dbUser = await prisma.user.create({
+      data: {
+        email: user.email!,
+        name: user.user_metadata?.full_name || user.email!.split('@')[0],
+        supabaseUid: user.id,
+      },
+    })
+  }
+
+  return dbUser
 }
 
 export async function requireAuth() {

@@ -69,7 +69,7 @@ const RHINOPLASTY_SIDE_OPTIONS = {
     prompt: "NOSE MODIFICATION ONLY: Transform the nose profile to be smaller and more compact with a soft, rounded button-like shape featuring a petite, dramatically upturned tip and nostrils clearly visible from the side view, creating a cute, youthful profile. ABSOLUTE PRESERVATION REQUIRED: Keep identical eye shape, eye color, eyebrow shape, eyebrow color, eyebrow position, forehead contour, cheek structure, cheekbone definition, jawline profile, chin shape, chin projection, lip color (exact RGB values), lip texture, lip fullness, lip outline, mouth corners, philtrum, neck contour, ear shape, skin texture, skin tone (exact color match), facial hair, lighting direction, shadow placement, highlight placement, facial expression, head angle, camera angle, background. DO NOT alter face shape, facial proportions, or any feature outside the nose area. Same person, identical appearance, only nasal profile modified."
   },
   custom: {
-    label: "Custom",
+    label: "Custom Nose Type",
     prompt: ""
   }
 };
@@ -102,6 +102,15 @@ export default function GeneratePage() {
   const [authFailed, setAuthFailed] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [generatedNoseType, setGeneratedNoseType] = useState<string>("");
+  const [generationLimit, setGenerationLimit] = useState<{
+    canGenerate: boolean;
+    currentCount: number;
+    limit: number;
+    remaining: number;
+    tier: string;
+    needsUpgrade: boolean;
+  } | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   // Check authentication and get user
   useEffect(() => {
@@ -112,6 +121,9 @@ export default function GeneratePage() {
       
       if (!session?.user) {
         router.push('/auth/signin');
+      } else {
+        // Check generation limits when user is authenticated
+        checkGenerationLimit();
       }
     };
 
@@ -125,12 +137,28 @@ export default function GeneratePage() {
         
         if (!session?.user) {
           router.push('/auth/signin');
+        } else {
+          // Check generation limits when user is authenticated
+          checkGenerationLimit();
         }
       }
     );
 
     return () => subscription.unsubscribe();
   }, [supabase.auth, router]);
+
+  // Function to check generation limits
+  const checkGenerationLimit = async () => {
+    try {
+      const response = await fetch('/api/check-generation-limit');
+      if (response.ok) {
+        const data = await response.json();
+        setGenerationLimit(data);
+      }
+    } catch (error) {
+      console.error('Error checking generation limit:', error);
+    }
+  };
 
   // Progressive loader logic
   useEffect(() => {
@@ -426,31 +454,46 @@ export default function GeneratePage() {
                         type="radio"
                         value={key}
                         checked={selectedOption === key}
-                        onChange={() => setSelectedOption(key)}
+                        onChange={() => 
+                          setSelectedOption(key)
+                        }
                         className="mt-1 mr-3"
                       />
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-[#181c2a]">
-                          {value.label.replace(/\(.*\)/, '')}
-                        </span>
+                      <div className="flex flex-col flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-[#181c2a]">
+                            {value.label.replace(/\(.*\)/, '')}
+                          </span>
+                          {key === 'custom' && (
+                            <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
+                              BETA
+                            </span>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-500">
                           {key === 'greek' && 'Classic straight bridge'}
                           {key === 'button' && 'a soft, rounded button-like shape'}
                           {key === 'roman' && 'wider, more prominent nasal bridge'}
                           {key === 'turnedUp' && 'Slightly upward tip'}
                           {key === 'nubian' && 'a broader, nasal base with notably wider, more flared nostrils'}
-                          {key === 'custom' && 'Custom Description , IMP : Make sure to describe the nose shape and the VIEW for better results '}
+                          {key === 'custom' && 'Custom Description - BETA: Experimental feature. Make sure to describe the nose shape and the VIEW for better results'}
                         </span>
                       </div>
                     </label>
                   ))}
                   {selectedOption === 'custom' && (
                     <div className="mt-2 w-full">
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">Custom Description</span>
+                        <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
+                          BETA VERSION
+                        </span>
+                      </div>
                       <textarea
                         value={customPrompt}
                         onChange={(e) => setCustomPrompt(e.target.value)}
                         placeholder="Describe your ideal nose shape in detail... (e.g., 'slightly smaller, more refined tip, straighter bridge')"
-                        className="w-full px-3 py-2 border border-blue-200 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="w-full px-3 py-2 border border-orange-200 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400"
                         rows={3}
                       />
                       <button
@@ -478,7 +521,7 @@ export default function GeneratePage() {
                         className={`mt-3 px-4 py-2 rounded-md font-semibold transition-colors ${
                           !customPrompt.trim() || isOptimizing
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'bg-orange-600 text-white hover:bg-orange-700'
                         }`}
                       >
                         {isOptimizing ? (
@@ -497,11 +540,35 @@ export default function GeneratePage() {
               {error && (
                 <div className="text-red-400 text-sm mt-2">{error}</div>
               )}
+              {/* Generation Limit Info */}
+              {generationLimit && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-blue-800">
+                      <span className="font-semibold">Generations used:</span> {generationLimit.currentCount}/{generationLimit.limit} ({generationLimit.remaining} remaining)
+                    </div>
+                    <div className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                      {generationLimit.tier} Plan
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <button
                 type="button"
-                disabled={isLoading || (selectedOption === 'custom' && !customPrompt)}
-                className={`w-full mt-6 py-3 px-4 rounded-md text-white font-semibold transition-colors ${isLoading || (selectedOption === 'custom' && !customPrompt) ? 'bg-blue-500/60 cursor-not-allowed' : 'bg-gradient-to-r from-[#43cea2] to-[#185a9d] hover:from-[#185a9d] hover:to-[#43cea2]'}`}
+                disabled={isLoading || (selectedOption === 'custom' && !customPrompt) || (generationLimit ? !generationLimit.canGenerate : false)}
+                className={`w-full mt-6 py-3 px-4 rounded-md text-white font-semibold transition-colors ${
+                  isLoading || (selectedOption === 'custom' && !customPrompt) || (generationLimit && !generationLimit.canGenerate)
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-[#43cea2] to-[#185a9d] hover:from-[#185a9d] hover:to-[#43cea2]'
+                }`}
                 onClick={async () => {
+                  // Check generation limit first
+                  if (generationLimit && !generationLimit.canGenerate) {
+                    setShowUpgradeModal(true);
+                    return;
+                  }
+
                   setError(null);
                   const finalPrompt = selectedOption === 'custom' ? customPrompt : currentOptions[selectedOption as keyof typeof currentOptions].prompt;
                   console.log('originalImageUrl:', originalImageUrl);
@@ -549,6 +616,9 @@ export default function GeneratePage() {
                     
                     // Set the generated nose type for display
                     setGeneratedNoseType(noseTypeLabel);
+                    
+                    // Refresh generation limit after successful generation
+                    await checkGenerationLimit();
                   } catch (err) {
                     setError('AI generation failed.');
                     console.error('AI generation error:', err);
@@ -562,6 +632,8 @@ export default function GeneratePage() {
                     <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Generating...
                   </div>
+                ) : generationLimit && !generationLimit.canGenerate ? (
+                  'Upgrade to Generate More'
                 ) : (
                   'Generate Simulation'
                 )}
@@ -647,12 +719,28 @@ export default function GeneratePage() {
                   className="inline-block px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-colors"
                   onClick={async () => {
                     try {
+                      // Create a more comprehensive filename
+                      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                      const noseType = selectedOption === 'custom' ? 'Custom' : selectedOption;
+                      const viewType = selectedView === 'front' ? 'Front' : 'Side';
+                      
+                      // Clean the nose type for filename
+                      const cleanedNoseType = noseType
+                        .replace(/\(.*?\)/g, "")  // Remove "(Side)" or "(Front)"
+                        .replace(/\s+/g, "")     // Remove spaces
+                        .replace(/[^a-zA-Z]/g, ""); // Remove non-letters
+                      
+                      // Create descriptive filename
+                      const filename = `Rhinoplasty_${cleanedNoseType}_${viewType}_${timestamp}.jpg`;
+                      
+                      // console.log('Downloading:', filename);
+
                       const response = await fetch(aiImageCloudUrl);
                       const blob = await response.blob();
                       const url = window.URL.createObjectURL(blob);
                       const link = document.createElement('a');
                       link.href = url;
-                      link.download = 'ai-image.jpg';
+                      link.download = filename;
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
@@ -662,10 +750,47 @@ export default function GeneratePage() {
                     }
                   }}
                 >
-                  Download AI Image
+                  Download Generated Image
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Upgrade Modal */}
+        {showUpgradeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Generation Limit Reached</h3>
+                <p className="text-gray-600 mb-6">
+                  You&apos;ve used all {generationLimit?.limit} free generations. Upgrade to continue creating amazing nose simulations!
+                </p>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      // TODO: Implement upgrade flow
+                      alert('Upgrade functionality coming soon!');
+                      setShowUpgradeModal(false);
+                    }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-colors"
+                  >
+                    Upgrade Now
+                  </button>
+                  <button
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                  >
+                    Maybe Later
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

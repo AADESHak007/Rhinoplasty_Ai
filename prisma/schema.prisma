@@ -27,6 +27,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   aiGenerationCount Int      @default(0)
+  tier Tier @default(FREE) //free will  get only 3 nose generations for free then won't be able to .....
 }
 
 model Images {
@@ -50,4 +51,11 @@ model AiGeneratedImage {
   nose_type    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum Tier {
+  FREE
+  PLUS
+  PRO
+  TEST
 }

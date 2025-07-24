@@ -51,22 +51,18 @@ export async function POST(req: NextRequest) {
       uploadStream.end(buffer);
     });
 
-    // Store image in database using transaction
-    const result = await prisma.$transaction(async (tx) => {
-      const image = await tx.images.create({
-        data: {
-          url: uploadRes.secure_url,
-          userId: user.id,
-        },
-      });
-
-      return {
+    // Store image in database
+    const image = await prisma.images.create({
+      data: {
         url: uploadRes.secure_url,
-        id: image.id
-      };
+        userId: user.id,
+      },
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      url: uploadRes.secure_url,
+      id: image.id
+    });
 
   } catch (error) {
     console.error("Upload error:", error);

@@ -34,88 +34,89 @@ export async function POST(req: NextRequest) {
 
     console.log("Processing generated image for user:", user.email);
 
-    // Use a transaction for all database operations
-    const result = await prisma.$transaction(async (tx) => {
-      // Find the original image by URL
-      const originalImage = await tx.images.findFirst({
-        where: { 
-          url: originalImageUrl,
-          userId: user.id
-        },
-        select: { id: true }
-      });
-
-      if (!originalImage) {
-        throw new Error("Original image not found or doesn't belong to user");
-      }
-
-      // Check for existing generation
-      const existingGenerated = await tx.aiGeneratedImage.findFirst({
-        where: {
-          originalImageId: originalImage.id,
-          userId: user.id,
-          description: prompt || null,
-          nose_type: nose_type || null
-        }
-      });
-
-      if (existingGenerated) {
-        return {
-          status: "success",
-          url: existingGenerated.imageUrl,
-          id: existingGenerated.id,
-          message: "Image already processed"
-        };
-      }
-
-      // Download and upload to Cloudinary
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.statusText}`);
-      }
-      const imageBuffer = await response.arrayBuffer();
-
-      const uploadRes = await new Promise<UploadApiResponse>((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: 'rhinoplasty/generated',
-            resource_type: 'auto',
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else if (result) resolve(result);
-            else reject(new Error("Upload failed: No result received"));
-          }
-        );
-        uploadStream.end(Buffer.from(imageBuffer));
-      });
-
-      // Store in database within transaction
-      const generatedImage = await tx.aiGeneratedImage.create({
-        data: {
-          imageUrl: uploadRes.secure_url,
-          userId: user.id,
-          originalImageId: originalImage.id,
-          description: prompt,
-          nose_type: nose_type || null,
-        },
-      });
-
-      // Increment generation count within transaction
-      await tx.user.update({
-        where: { id: user.id },
-        data: { aiGenerationCount: { increment: 1 } },
-      });
-
-      return {
-        status: "success",
-        url: uploadRes.secure_url,
-        id: generatedImage.id,
-        message: "Image stored successfully"
-      };
+    // Find the original image by URL
+    const originalImage = await prisma.images.findFirst({
+      where: { 
+        url: originalImageUrl,
+        userId: user.id
+      },
+      select: { id: true }
     });
 
-    return NextResponse.json(result);
+    if (!originalImage) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Original image not found or doesn't belong to user"
+        },
+        { status: 404 }
+      );
+    }
+
+    // Check for existing generation
+    const existingGenerated = await prisma.aiGeneratedImage.findFirst({
+      where: {
+        originalImageId: originalImage.id,
+        userId: user.id,
+        description: prompt || null,
+        nose_type: nose_type || null
+      }
+    });
+
+    if (existingGenerated) {
+      return NextResponse.json({
+        status: "success",
+        url: existingGenerated.imageUrl,
+        id: existingGenerated.id,
+        message: "Image already processed"
+      });
+    }
+
+    // Download and upload to Cloudinary
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    const imageBuffer = await response.arrayBuffer();
+
+    const uploadRes = await new Promise<UploadApiResponse>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'rhinoplasty/generated',
+          resource_type: 'auto',
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else if (result) resolve(result);
+          else reject(new Error("Upload failed: No result received"));
+        }
+      );
+      uploadStream.end(Buffer.from(imageBuffer));
+    });
+
+    // Store in database
+    const generatedImage = await prisma.aiGeneratedImage.create({
+      data: {
+        imageUrl: uploadRes.secure_url,
+        userId: user.id,
+        originalImageId: originalImage.id,
+        description: prompt,
+        nose_type: nose_type || null,
+      },
+    });
+
+    // Increment generation count
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { aiGenerationCount: { increment: 1 } },
+    });
+
+    return NextResponse.json({
+      status: "success",
+      url: uploadRes.secure_url,
+      id: generatedImage.id,
+      message: "Image stored successfully"
+    });
 
   } catch (error) {
     console.error("Store generated image error:", error);

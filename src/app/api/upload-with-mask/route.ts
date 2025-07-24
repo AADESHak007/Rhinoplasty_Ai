@@ -70,18 +70,23 @@ export async function POST(req: NextRequest) {
 //     });
 // console.log("getting the current user .....")
     
-// 4. Store original image in DB
+    // 4. Store original image in DB
     
-const user = await getCurrentUser();
+    const user = await getCurrentUser();
     let imageDbId = null;
     if (user) {
-      const dbImage = await prisma.images.create({
-        data: {
-          url: uploadOriginal.secure_url,
-          userId: user.id,
-        },
-      });
-      imageDbId = dbImage.id;
+      try {
+        const dbImage = await prisma.images.create({
+          data: {
+            url: uploadOriginal.secure_url,
+            userId: user.id,
+          },
+        });
+        imageDbId = dbImage.id;
+      } catch (dbError) {
+        console.error("Database error:", dbError);
+        // Continue without storing in DB if there's an error
+      }
     }
 
     // Return URLs and DB id
